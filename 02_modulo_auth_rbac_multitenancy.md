@@ -4,6 +4,8 @@
 **Estado:** Diseño detallado para implementación\
 **Prioridad:** Primera fase funcional del producto
 
+> **Nota de vigencia:** este documento conserva los requisitos de diseño del módulo. No todas las funciones descritas necesariamente están implementadas; consulta [README.md](./README.md) y [GUIA_PROYECTO.md](./GUIA_PROYECTO.md) para el estado y el entorno local actual.
+
 ------------------------------------------------------------------------
 
 ## 1. Objetivo y alcance

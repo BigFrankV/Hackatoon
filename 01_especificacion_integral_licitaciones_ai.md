@@ -5,6 +5,8 @@
 **Alcance:** Definición funcional, arquitectura, módulos, flujos,
 seguridad, datos, API, interfaz y plan de implementación.
 
+> **Nota de vigencia:** esta es la especificación objetivo del producto, no un inventario de todo lo implementado. El estado actual y el arranque local se describen en [README.md](./README.md) y [GUIA_PROYECTO.md](./GUIA_PROYECTO.md).
+
 ------------------------------------------------------------------------
 
 ## 1. Propósito y visión del producto

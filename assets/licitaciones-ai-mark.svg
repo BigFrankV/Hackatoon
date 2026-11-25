@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">Licitaciones AI</title>
+  <desc id="desc">Símbolo original de documentos, licitaciones y análisis inteligente.</desc>
+  <defs>
+    <linearGradient id="background" x1="20" y1="18" x2="220" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172554"/>
+      <stop offset="1" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="65" y1="45" x2="178" y2="192" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="224" height="224" rx="54" fill="url(#background)"/>
+  <path d="M75 43h65l35 35v116H75a16 16 0 0 1-16-16V59a16 16 0 0 1 16-16Z" fill="url(#paper)"/>
+  <path d="M140 43v28a8 8 0 0 0 8 8h27" fill="#bfdbfe"/>
+  <path d="M87 104h56M87 124h55M87 144h35" stroke="#64748b" stroke-linecap="round" stroke-width="8"/>
+  <path d="m125 165 12 12 24-27" fill="none" stroke="#0f766e" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+  <path d="m184 103 4 11 11 4-11 4-4 11-4-11-11-4 11-4 4-11Z" fill="#fbbf24"/>
+</svg>

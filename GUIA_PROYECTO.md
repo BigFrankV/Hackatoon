@@ -2,15 +2,11 @@
 
 ## 1. Estado actual
 
-El módulo correspondiente al **doc 2** (login, autenticación, RBAC, multitenancy, administración de empresas/usuarios y vistas por rol) está implementado por tramos (1 a 4).
+Implementado: autenticación, sesiones, perfil, RBAC, administración de empresas y usuarios, aislamiento multiempresa y auditoría. El entorno local automatiza migraciones, bootstrap de superadmin y datos demo.
 
-Verificaciones realizadas durante la implementación:
-- Backend: `pytest -q` → **48 passed**.
-- Backend: `ruff check` en cambios del Tramo 3 → **All checks passed**.
-- Frontend: `npm run build` → **OK** (`tsc --noEmit && vite build`).
-- Docker: `docker compose config` → **OK**.
+Pendiente: bóveda documental, licitaciones, análisis Go/No-Go, chat contextual y preparación de ofertas siguen como placeholders; el worker no procesa trabajos reales y no existe despliegue CI/CD a producción.
 
-> Nota: no se ejecutó una prueba E2E manual nueva en esta guía. Antes de pasar a producción, se recomienda una validación integrada completa.
+Usa los comandos de pruebas de este documento para validar el estado actual. No se fija aquí un conteo de pruebas, porque cambia a medida que se añaden casos.
 
 ## 2. Recorrido del backend
 
@@ -118,6 +114,10 @@ Prefijo: `/api/v1`
 | `app/tests/test_migrations.py` | Test de migración | `alembic upgrade head` en SQLite |
 | `app/tests/test_auth.py` | Tests de auth | Login/refresh/logout/perfil/password/sesiones/casos críticos |
 | `app/tests/test_tramo3_rbac.py` | Tests RBAC/multitenancy | Permisos, aislamiento entre empresas, suspensión/desactivación, auditoría |
+| `app/tests/test_bootstrap.py` | Tests de bootstrap | Creación idempotente del superadmin y validación de contraseña |
+| `app/tests/test_demo_seed.py` | Tests del seed local | Empresas, usuarios demo e idempotencia |
+| `app/tests/test_rate_limit.py` | Tests de rate limit | Expiración y límite del estado en memoria |
+| `app/tests/test_user_invariants.py` | Tests de invariantes | Protección del último admin por empresa |
 
 ## 3. Recorrido del frontend
 
@@ -132,7 +132,7 @@ Ruta base: `frontend/`
 | `tailwind.config.js`, `postcss.config.js` | Estilos |
 | `tsconfig.json`, `tsconfig.node.json` | TypeScript estricto |
 | `.env.example` | `VITE_API_BASE_URL`, `VITE_APP_NAME` |
-| `Dockerfile` | Dev server Vite (opcional; se recomienda correr front manual en desarrollo) |
+| `Dockerfile` | Dev server Vite opcional; el script pregunta si iniciarlo en Docker (por defecto, manual) |
 | `index.html` | Punto de montaje SPA |
 
 ### 3.2 Entrada y router
@@ -199,159 +199,65 @@ Sí. La migración inicial está lista en:
 - `backend/alembic/env.py`
 - `backend/alembic/versions/0001_initial_identity.py`
 
-Crea las tablas: `companies`, `users`, `refresh_tokens`, `audit_logs`.
+Crea las tablas: `companies`, `users`, `refresh_tokens`, `audit_logs`. No inserta empresas demo.
 
 ### Punto importante
 
-`docker-compose.yml` **no ejecuta migraciones automáticamente**. Después de levantar la base de datos, se debe ejecutar:
+El servicio `migrate` ejecuta `alembic upgrade head` después de que PostgreSQL esté saludable. Luego, `bootstrap` crea el primer `super_admin` si todavía no existe y `seed-demo` añade dos empresas con un admin y un usuario normal cada una. La API inicia después de que estas tareas de una sola ejecución terminan correctamente. El seeder solo se activa en el perfil local `dev` y no forma parte de las migraciones.
 
-```bash
-alembic upgrade head
-```
+## 5. Desarrollo local con Docker Compose
 
-## 5. Ejecución local recomendada (DB + backend en Docker, frontend manual)
+El flujo local está automatizado con un script de PowerShell. Requiere Docker Desktop con Docker Compose.
 
-Esta opción evita cargar el frontend dentro de Docker durante desarrollo.
+### 5.1 Primer inicio
 
-### 5.1 Prerrequisitos
-
-- Docker Desktop / Docker Compose
-- Python 3.12+ (recomendado para scripts/herramientas locales backend)
-- Node.js 22+ (frontend manual)
-
-### 5.2 Preparar variables de entorno
-
-Desde la raíz del proyecto:
+Desde la raíz del repositorio:
 
 ```powershell
-Copy-Item backend\.env.example backend\.env
-Copy-Item frontend\.env.example frontend\.env
+.\scripts\dev-up.ps1
 ```
 
-Revisar valores mínimos:
+En la primera ejecución se crean `.env`, `backend/.env` y `frontend/.env` desde los ejemplos, sin sobrescribir archivos existentes. Completar en el `.env` raíz:
 
-- `backend/.env`
-  - `SECRET_KEY`: cambiar el valor de desarrollo.
-  - `DATABASE_URL`: para backend en Docker Compose se sobreescribe a `db`; para backend manual local usar `localhost:5432`.
-  - `CORS_ORIGINS`: incluir `http://localhost:5173`.
-- `frontend/.env`
-  - `VITE_API_BASE_URL=http://localhost:8000/api/v1`
+- `BOOTSTRAP_SUPERADMIN_EMAIL`
+- `BOOTSTRAP_SUPERADMIN_PASSWORD` (mínimo 12 caracteres)
+- Reemplazar los valores de ejemplo de `POSTGRES_PASSWORD` y `PGADMIN_DEFAULT_PASSWORD` por contraseñas propias.
 
-> Observación: el `docker-compose.yml` actual referencia `env_file: ./backend/.env.example` y `./frontend/.env.example`. Si se desea usar `.env`, ajustar `docker-compose.yml` en consecuencia.
+Volver a ejecutar el script. Si las cuatro variables `DEV_SEED_*_PASSWORD` están vacías, el script genera contraseñas locales y las guarda en el `.env`. Se levantan PostgreSQL, migraciones, bootstrap, datos demo, backend y pgAdmin; pgAdmin registra la conexión local y el script espera que backend y pgAdmin estén saludables. También pregunta si debe iniciar el frontend en Docker. Enter lo deja manual para ejecutarlo desde `frontend/` con `npm run dev`. El bootstrap y el seeder son idempotentes: no reemplazan contraseñas de cuentas existentes.
 
-### 5.3 Levantar DB, backend y worker (sin frontend)
+Los `.env` locales están ignorados por Git. Esta configuración es solo para desarrollo local; no reutilizar las credenciales de ejemplo en despliegues.
+Los accesos y la ubicación local de cada contraseña están descritos en [CREDENCIALES_DESARROLLO.md](./CREDENCIALES_DESARROLLO.md); las contraseñas reales no se guardan en la documentación.
 
-Desde la raíz:
+### 5.2 Servicios
 
-```powershell
-docker compose up --build db backend worker
-```
-
-Servicios:
-- PostgreSQL: `localhost:5432`
-- Backend: `http://localhost:8000`
-- Docs: `http://localhost:8000/docs`
+- Frontend: `http://localhost:5173` (solo si se elige iniciarlo en Docker; si no, iniciar Vite manualmente)
+- API: `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
 - Health: `http://localhost:8000/api/v1/health`
+- pgAdmin: `http://localhost:5050`
+- PostgreSQL desde el host: `localhost:5432`
 
-### 5.4 Ejecutar migraciones
+pgAdmin inicia con el servidor `Licitaciones local` preconfigurado por el script (host `db`, puerto `5432`), sincronizado con `POSTGRES_DB` y `POSTGRES_USER`. Si solicita la contraseña de PostgreSQL, usa `POSTGRES_PASSWORD` del `.env` raíz. El worker sigue siendo un placeholder y solo se inicia explícitamente con el perfil `jobs`.
 
-Con contenedores activos:
-
-```powershell
-docker compose exec backend alembic upgrade head
-```
-
-Alternativa local (backend manual, venv activo, DB accesible):
+Detener los servicios sin borrar los datos:
 
 ```powershell
-cd backend
-.\.venv\Scripts\activate
-alembic upgrade head
+docker compose --profile dev --profile frontend down
 ```
 
-### 5.5 Levantar frontend manual
+PostgreSQL y pgAdmin conservan sus datos en volúmenes separados. No ejecutar `docker compose down --volumes` si se desea preservar la base de datos.
 
-En otra terminal:
+### 5.3 Variables locales
 
-```powershell
-cd frontend
-npm install
-npm run dev
-```
+Compose carga la configuración de base de datos y pgAdmin desde el `.env` raíz. La API y Vite usan `backend/.env` y `frontend/.env`, respectivamente. Cambiar los archivos `.env.example` solo modifica los valores iniciales para clones nuevos; no reemplaza los `.env` locales existentes.
 
-Frontend: `http://localhost:5173`
+## 6. Alcance de CI/CD
 
-### 5.6 Crear primer super_admin (bootstrap inicial)
+La automatización actual prepara y valida el entorno de desarrollo local; no despliega a una nube. El despliegue CI/CD se definirá cuando se seleccione el destino y la estrategia de publicación.
 
-Actualmente no existe seed automático para el primer `super_admin`. Se puede crear una vez con un script temporal.
+## 7. Despliegue futuro (no configurado)
 
-Crear `backend/bootstrap_superadmin.py`:
-
-```python
-import asyncio
-
-from sqlalchemy import select
-
-from app.core.security import hash_password, normalize_email
-from app.db.session import AsyncSessionFactory
-from app.models.enums import UserRole, UserStatus
-from app.models.user import User
-
-
-async def main() -> None:
-    email = normalize_email("superadmin@local.dev")
-    password = "ChangeMe123!Strong"
-
-    async with AsyncSessionFactory() as db:
-        existing = await db.execute(select(User).where(User.email == email))
-        if existing.scalar_one_or_none():
-            print("super_admin already exists:", email)
-            return
-
-        user = User(
-            email=email,
-            first_name="Platform",
-            last_name="Admin",
-            password_hash=hash_password(password),
-            role=UserRole.SUPER_ADMIN,
-            status=UserStatus.ACTIVE,
-            company_id=None,
-            must_change_password=True,
-        )
-        db.add(user)
-        await db.commit()
-        print("super_admin created:", email)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-Ejecutar desde `backend` con el entorno activo y DB accesible:
-
-```powershell
-cd backend
-.\.venv\Scripts\activate
-python bootstrap_superadmin.py
-```
-
-Después de crear el usuario, eliminar el archivo temporal. Iniciar sesión en `http://localhost:5173/login` y cambiar la contraseña.
-
-## 6. Ejecución alternativa con Docker Compose completo
-
-Si se desea levantar también el frontend en Docker:
-
-```powershell
-docker compose up --build
-```
-
-Luego ejecutar migraciones:
-
-```powershell
-docker compose exec backend alembic upgrade head
-```
-
-## 7. Despliegue base (guía)
+El Compose actual es de desarrollo: publica PostgreSQL y pgAdmin al host, usa recarga automática y ejecuta el bootstrap local. No usarlo como configuración de producción.
 
 ### 7.1 Base de datos
 
@@ -373,7 +279,7 @@ docker compose exec backend alembic upgrade head
 
 ```powershell
 cd frontend
-npm install
+npm ci
 npm run build
 ```
 
@@ -392,9 +298,8 @@ npm run build
 
 ## 8. Observaciones y pendientes
 
-- `README.md` está desactualizado (describe Tramo 1); esta guía refleja el estado actual del módulo auth/RBAC.
-- No existe bootstrap automático de `super_admin`; se documenta un procedimiento manual inicial.
+- El bootstrap de `super_admin` se ejecuta en desarrollo desde las variables del `.env` raíz y no reemplaza cuentas existentes.
+- `README.md` y esta guía describen el arranque Docker local; todavía no hay un despliegue CI/CD a nube.
 - El worker es placeholder; no hay procesamiento asíncrono real todavía.
 - Los módulos de bóveda, licitaciones, análisis, chat y ofertas están como placeholders en frontend.
-- El rate limit de login es en memoria (no distribuido).
-- `docker-compose.yml` no ejecuta migraciones automáticamente.
+- El rate limit de login elimina claves inactivas y tiene un límite de estado, pero sigue siendo local al proceso y no distribuido.

@@ -141,6 +141,9 @@ async def _ensure_not_last_active_admin(
 ) -> None:
     if user.role != UserRole.ADMIN or user.status != UserStatus.ACTIVE or user.company_id is None:
         return
+    await db.execute(
+        select(Company.id).where(Company.id == user.company_id).with_for_update()
+    )
     remaining = await _count_active_admins(db, company_id=user.company_id, exclude_user_id=user.id)
     if remaining > 0:
         return

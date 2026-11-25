@@ -1,13 +1,12 @@
 services:
   db:
     image: pgvector/pgvector:pg16
-    container_name: licitaciones-db
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-licitaciones}
       POSTGRES_USER: ${POSTGRES_USER:-licitaciones}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-licitaciones_dev_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the root .env}
     ports:
-      - "5432:5432" # Dev convenience; remove in production-minded deployments.
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,23 +16,81 @@ services:
       retries: 5
       start_period: 10s
 
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-licitaciones}
+      ENVIRONMENT: development
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: alembic upgrade head
+    restart: "no"
+
+  bootstrap:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-licitaciones}
+      ENVIRONMENT: development
+      BOOTSTRAP_SUPERADMIN_EMAIL: ${BOOTSTRAP_SUPERADMIN_EMAIL:?Set BOOTSTRAP_SUPERADMIN_EMAIL in the root .env}
+      BOOTSTRAP_SUPERADMIN_PASSWORD: ${BOOTSTRAP_SUPERADMIN_PASSWORD:?Set BOOTSTRAP_SUPERADMIN_PASSWORD in the root .env}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: python -m app.bootstrap
+    restart: "no"
+
+  seed-demo:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-licitaciones}
+      ENVIRONMENT: development
+      DEV_SEED_NORTH_ADMIN_PASSWORD: ${DEV_SEED_NORTH_ADMIN_PASSWORD:?Set DEV_SEED_NORTH_ADMIN_PASSWORD in the root .env}
+      DEV_SEED_NORTH_USER_PASSWORD: ${DEV_SEED_NORTH_USER_PASSWORD:?Set DEV_SEED_NORTH_USER_PASSWORD in the root .env}
+      DEV_SEED_SOUTH_ADMIN_PASSWORD: ${DEV_SEED_SOUTH_ADMIN_PASSWORD:?Set DEV_SEED_SOUTH_ADMIN_PASSWORD in the root .env}
+      DEV_SEED_SOUTH_USER_PASSWORD: ${DEV_SEED_SOUTH_USER_PASSWORD:?Set DEV_SEED_SOUTH_USER_PASSWORD in the root .env}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    command: python -m app.seed_demo
+    restart: "no"
+    profiles:
+      - dev
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: licitaciones-backend
     env_file:
-      - ./backend/.env.example
+      - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD:-licitaciones_dev_password}@db:5432/${POSTGRES_DB:-licitaciones}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-licitaciones}
       ENVIRONMENT: development
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
     depends_on:
-      db:
-        condition: service_healthy
+      seed-demo:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')\""]
       interval: 15s
@@ -46,32 +103,26 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: licitaciones-worker
     env_file:
-      - ./backend/.env.example
+      - ./backend/.env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD:-licitaciones_dev_password}@db:5432/${POSTGRES_DB:-licitaciones}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-licitaciones}
       ENVIRONMENT: development
     volumes:
       - ./backend:/app
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     command: python -m app.workers.main
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"print('ok')\""]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+    profiles:
+      - jobs
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: licitaciones-frontend
     env_file:
-      - ./frontend/.env.example
+      - ./frontend/.env
     ports:
       - "5173:5173"
     volumes:
@@ -81,6 +132,34 @@ services:
       backend:
         condition: service_healthy
     command: npm run dev -- --host 0.0.0.0 --port 5173
+    profiles:
+      - frontend
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?Set PGADMIN_DEFAULT_EMAIL in the root .env}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?Set PGADMIN_DEFAULT_PASSWORD in the root .env}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1/misc/ping', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    profiles:
+      - dev
 
 volumes:
   postgres_data:
+  pgadmin_data:
