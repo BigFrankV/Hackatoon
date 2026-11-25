@@ -1,0 +1,86 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: licitaciones-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-licitaciones}
+      POSTGRES_USER: ${POSTGRES_USER:-licitaciones}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-licitaciones_dev_password}
+    ports:
+      - "5432:5432" # Dev convenience; remove in production-minded deployments.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-licitaciones} -d ${POSTGRES_DB:-licitaciones}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: licitaciones-backend
+    env_file:
+      - ./backend/.env.example
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD:-licitaciones_dev_password}@db:5432/${POSTGRES_DB:-licitaciones}
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: licitaciones-worker
+    env_file:
+      - ./backend/.env.example
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-licitaciones}:${POSTGRES_PASSWORD:-licitaciones_dev_password}@db:5432/${POSTGRES_DB:-licitaciones}
+      ENVIRONMENT: development
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python -m app.workers.main
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"print('ok')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: licitaciones-frontend
+    env_file:
+      - ./frontend/.env.example
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+
+volumes:
+  postgres_data:
