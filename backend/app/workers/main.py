@@ -1,21 +1,45 @@
-"""Worker entrypoint placeholder.
+from __future__ import annotations
 
-Background job processing will be implemented in later tranches.
-"""
-
+import asyncio
 import logging
-import time
+from collections.abc import Mapping
 
+from app.core.config import get_settings
 from app.core.logging import configure_logging
+from app.db.session import AsyncSessionFactory
+from app.services.processing_job_service import (
+    JobHandler,
+    process_next_processing_job,
+)
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
+JOB_HANDLERS: dict[str, JobHandler] = {}
+
+
+async def run_worker(handlers: Mapping[str, JobHandler] | None = None) -> None:
+    settings = get_settings()
+    registered_handlers = JOB_HANDLERS if handlers is None else handlers
+    if not registered_handlers:
+        logger.warning(
+            "Worker started without registered document job handlers; "
+            "queued jobs will remain untouched"
+        )
+    while True:
+        async with AsyncSessionFactory() as db:
+            processed = await process_next_processing_job(
+                db,
+                handlers=registered_handlers,
+                worker_id="document-worker",
+                lease_seconds=settings.worker_lease_seconds,
+            )
+        if not processed:
+            await asyncio.sleep(settings.worker_poll_interval_seconds)
+
 
 def main() -> None:
-    logger.info("Worker placeholder started. No background jobs configured in Tramo 1.")
-    while True:
-        time.sleep(60)
+    asyncio.run(run_worker())
 
 
 if __name__ == "__main__":

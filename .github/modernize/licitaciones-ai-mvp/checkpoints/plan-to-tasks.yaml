@@ -1,0 +1,114 @@
+metadata:
+  generated: "2026-11-26"
+  source_plan: "../plan.md"
+  target_tasks: "../plan.md (inline task list)"
+
+summary:
+  total_plan_items: 29
+  covered_plan_items: 29
+  missing_plan_items: 0
+  coverage_percentage: 100.0
+  total_tasks_generated: 56
+  orphan_tasks: 0
+
+phases:
+  - phase_id: "Phase-1"
+    phase_name: "Setup and Approval Gates"
+    items:
+      - {item_id: "1.1", description: "Approve product/data baseline", tasks: ["T001"]}
+      - {item_id: "1.2", description: "Validate external/model prerequisites", tasks: ["T002", "T003"]}
+      - {item_id: "1.3", description: "Establish test foundations", tasks: ["T004"]}
+  - phase_id: "Phase-2"
+    phase_name: "Foundational Capabilities"
+    items:
+      - {item_id: "2.1", description: "Implement reviewed relational schema", tasks: ["T005", "T006"]}
+      - {item_id: "2.2", description: "Enforce tenant access and audit", tasks: ["T007", "T008"]}
+      - {item_id: "2.3", description: "Define integration adapters", tasks: ["T009", "T010"]}
+      - {item_id: "2.4", description: "Add durable background processing", tasks: ["T011", "T012"]}
+      - {item_id: "2.5", description: "Connect routes and browser verification", tasks: ["T013", "T014"]}
+  - phase_id: "Phase-3"
+    phase_name: "US1 - Find and Follow an Opportunity"
+    items:
+      - {item_id: "3.1", description: "Integrate official source", tasks: ["T015", "T016"]}
+      - {item_id: "3.2", description: "Persist catalogue and tracking", tasks: ["T017", "T018"]}
+      - {item_id: "3.3", description: "Deliver search and follow flows", tasks: ["T019", "T020"]}
+  - phase_id: "Phase-4"
+    phase_name: "US2 - Configure and Choose an Ollama Model"
+    items:
+      - {item_id: "4.1", description: "Provider registry and clients", tasks: ["T021", "T022"]}
+      - {item_id: "4.2", description: "Company policies and embedding separation", tasks: ["T023", "T024"]}
+      - {item_id: "4.3", description: "Model settings and selection UI", tasks: ["T025", "T026"]}
+  - phase_id: "Phase-5"
+    phase_name: "US3 - Add and Process Tender Documents"
+    items:
+      - {item_id: "5.1", description: "Private upload and versioning", tasks: ["T027", "T028"]}
+      - {item_id: "5.2", description: "Conditional source retrieval", tasks: ["T029", "T030"]}
+      - {item_id: "5.3", description: "Extraction and durable processing", tasks: ["T031", "T032"]}
+      - {item_id: "5.4", description: "Document management UI", tasks: ["T033", "T034"]}
+  - phase_id: "Phase-6"
+    phase_name: "US4 - Review Traceable Go/No-Go Analysis"
+    items:
+      - {item_id: "6.1", description: "Analysis run and rules", tasks: ["T035", "T036"]}
+      - {item_id: "6.2", description: "Findings and provenance", tasks: ["T037", "T038"]}
+      - {item_id: "6.3", description: "Human decision and report", tasks: ["T039", "T040"]}
+  - phase_id: "Phase-7"
+    phase_name: "US5 - Track the Opportunity Lifecycle"
+    items:
+      - {item_id: "7.1", description: "Internal lifecycle and history", tasks: ["T041", "T042"]}
+      - {item_id: "7.2", description: "Lifecycle UI and authorization", tasks: ["T043", "T044"]}
+  - phase_id: "Phase-8"
+    phase_name: "US6 - Ask Grounded Questions in Context"
+    items:
+      - {item_id: "8.1", description: "Tenant-scoped conversation and retrieval", tasks: ["T045", "T046"]}
+      - {item_id: "8.2", description: "Chat endpoint and provider-aware UI", tasks: ["T047", "T048"]}
+  - phase_id: "Phase-9"
+    phase_name: "US7 - Prepare a Versioned Offer Package"
+    items:
+      - {item_id: "9.1", description: "Offer versions and selected documents", tasks: ["T049", "T050"]}
+      - {item_id: "9.2", description: "Generate and deliver package", tasks: ["T051", "T052"]}
+  - phase_id: "Phase-10"
+    phase_name: "Polish and Cross-Cutting Delivery"
+    items:
+      - {item_id: "10.1", description: "Regression, operations, documentation", tasks: ["T053", "T054"]}
+      - {item_id: "10.2", description: "Automate CI quality checks", tasks: ["T055", "T056"]}
+
+missing_plan_items: []
+orphan_tasks: []
+upstream_trace:
+  - {plan_item: "1.1", source_requirements: ["REQ-001", "REQ-002", "REQ-010", "REQ-016", "REQ-024"], tasks: ["T001"], full_trace: "REQ-001,REQ-002,REQ-010,REQ-016,REQ-024 -> 1.1 -> T001"}
+  - {plan_item: "1.2", source_requirements: ["REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-012", "REQ-025"], tasks: ["T002", "T003"], full_trace: "REQ-003,REQ-004,REQ-005,REQ-006,REQ-007,REQ-008,REQ-009,REQ-012,REQ-025 -> 1.2 -> T002,T003"}
+  - {plan_item: "1.3", source_requirements: ["REQ-001", "REQ-002"], tasks: ["T004"], full_trace: "REQ-001,REQ-002 -> 1.3 -> T004"}
+  - {plan_item: "2.1", source_requirements: ["REQ-001", "REQ-002", "REQ-010", "REQ-011", "REQ-012", "REQ-014", "REQ-015", "REQ-016", "REQ-017", "REQ-018", "REQ-019", "REQ-020", "REQ-021", "REQ-023"], tasks: ["T005", "T006"], full_trace: "schema REQs -> 2.1 -> T005,T006"}
+  - {plan_item: "2.2", source_requirements: ["REQ-001", "REQ-002", "REQ-016", "REQ-024"], tasks: ["T007", "T008"], full_trace: "REQ-001,REQ-002,REQ-016,REQ-024 -> 2.2 -> T007,T008"}
+  - {plan_item: "2.3", source_requirements: ["REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-012", "REQ-025"], tasks: ["T009", "T010"], full_trace: "integration REQs -> 2.3 -> T009,T010"}
+  - {plan_item: "2.4", source_requirements: ["REQ-014", "REQ-017", "REQ-025"], tasks: ["T011", "T012"], full_trace: "REQ-014,REQ-017,REQ-025 -> 2.4 -> T011,T012"}
+  - {plan_item: "2.5", source_requirements: ["REQ-001", "REQ-002", "REQ-008", "REQ-011"], tasks: ["T013", "T014"], full_trace: "REQ-001,REQ-002,REQ-008,REQ-011 -> 2.5 -> T013,T014"}
+  - {plan_item: "3.1", source_requirements: ["REQ-008", "REQ-009"], tasks: ["T015", "T016"], full_trace: "REQ-008,REQ-009 -> 3.1 -> T015,T016"}
+  - {plan_item: "3.2", source_requirements: ["REQ-001", "REQ-002", "REQ-010"], tasks: ["T017", "T018"], full_trace: "REQ-001,REQ-002,REQ-010 -> 3.2 -> T017,T018"}
+  - {plan_item: "3.3", source_requirements: ["REQ-001", "REQ-002", "REQ-008", "REQ-009", "REQ-010"], tasks: ["T019", "T020"], full_trace: "opportunity REQs -> 3.3 -> T019,T020"}
+  - {plan_item: "4.1", source_requirements: ["REQ-003", "REQ-007"], tasks: ["T021", "T022"], full_trace: "REQ-003,REQ-007 -> 4.1 -> T021,T022"}
+  - {plan_item: "4.2", source_requirements: ["REQ-004", "REQ-005", "REQ-006"], tasks: ["T023", "T024"], full_trace: "REQ-004,REQ-005,REQ-006 -> 4.2 -> T023,T024"}
+  - {plan_item: "4.3", source_requirements: ["REQ-004", "REQ-005", "REQ-006", "REQ-007"], tasks: ["T025", "T026"], full_trace: "model policy REQs -> 4.3 -> T025,T026"}
+  - {plan_item: "5.1", source_requirements: ["REQ-013", "REQ-016", "REQ-024"], tasks: ["T027", "T028"], full_trace: "REQ-013,REQ-016,REQ-024 -> 5.1 -> T027,T028"}
+  - {plan_item: "5.2", source_requirements: ["REQ-012", "REQ-025"], tasks: ["T029", "T030"], full_trace: "REQ-012,REQ-025 -> 5.2 -> T029,T030"}
+  - {plan_item: "5.3", source_requirements: ["REQ-014", "REQ-015", "REQ-016"], tasks: ["T031", "T032"], full_trace: "REQ-014,REQ-015,REQ-016 -> 5.3 -> T031,T032"}
+  - {plan_item: "5.4", source_requirements: ["REQ-012", "REQ-013", "REQ-014", "REQ-015", "REQ-016", "REQ-025"], tasks: ["T033", "T034"], full_trace: "document REQs -> 5.4 -> T033,T034"}
+  - {plan_item: "6.1", source_requirements: ["REQ-017", "REQ-018", "REQ-019"], tasks: ["T035", "T036"], full_trace: "REQ-017,REQ-018,REQ-019 -> 6.1 -> T035,T036"}
+  - {plan_item: "6.2", source_requirements: ["REQ-018", "REQ-019"], tasks: ["T037", "T038"], full_trace: "REQ-018,REQ-019 -> 6.2 -> T037,T038"}
+  - {plan_item: "6.3", source_requirements: ["REQ-018", "REQ-020", "REQ-024"], tasks: ["T039", "T040"], full_trace: "REQ-018,REQ-020,REQ-024 -> 6.3 -> T039,T040"}
+  - {plan_item: "7.1", source_requirements: ["REQ-011", "REQ-024"], tasks: ["T041", "T042"], full_trace: "REQ-011,REQ-024 -> 7.1 -> T041,T042"}
+  - {plan_item: "7.2", source_requirements: ["REQ-001", "REQ-002", "REQ-011", "REQ-024"], tasks: ["T043", "T044"], full_trace: "tracking REQs -> 7.2 -> T043,T044"}
+  - {plan_item: "8.1", source_requirements: ["REQ-016", "REQ-021", "REQ-022"], tasks: ["T045", "T046"], full_trace: "REQ-016,REQ-021,REQ-022 -> 8.1 -> T045,T046"}
+  - {plan_item: "8.2", source_requirements: ["REQ-005", "REQ-007", "REQ-021", "REQ-022"], tasks: ["T047", "T048"], full_trace: "chat REQs -> 8.2 -> T047,T048"}
+  - {plan_item: "9.1", source_requirements: ["REQ-016", "REQ-023", "REQ-024"], tasks: ["T049", "T050"], full_trace: "REQ-016,REQ-023,REQ-024 -> 9.1 -> T049,T050"}
+  - {plan_item: "9.2", source_requirements: ["REQ-016", "REQ-023", "REQ-024"], tasks: ["T051", "T052"], full_trace: "REQ-016,REQ-023,REQ-024 -> 9.2 -> T051,T052"}
+  - {plan_item: "10.1", source_requirements: ["REQ-001", "REQ-002", "REQ-003", "REQ-007", "REQ-014", "REQ-024", "REQ-025"], tasks: ["T053", "T054"], full_trace: "cross-cutting REQs -> 10.1 -> T053,T054"}
+  - {plan_item: "10.2", source_requirements: ["REQ-001", "REQ-002", "REQ-024"], tasks: ["T055", "T056"], full_trace: "REQ-001,REQ-002,REQ-024 -> 10.2 -> T055,T056"}
+
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "The planning baseline is approved; execution remains gated on schema details, Ollama reachability, embedding dimension, and Mercado Público validation for live integration only."
+    - "Hosted AI and production cloud storage are deferred to later decisions."
+    - "All implementation tasks must run module-level tests and record exit code and pass/fail/skip counts."

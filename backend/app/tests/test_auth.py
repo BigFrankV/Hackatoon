@@ -10,6 +10,7 @@ from app.core.security import hash_password, hash_refresh_token
 from app.models.company import Company
 from app.models.enums import CompanyStatus, UserRole, UserStatus
 from app.models.refresh_token import RefreshToken
+from app.models.role import Role
 from app.models.user import User
 
 
@@ -41,6 +42,8 @@ async def create_user(db_session, *, company: Company | None = None, **overrides
         "company_id": company.id if company else None,
     }
     data.update(overrides)
+    role = data["role"]
+    data["role"] = await db_session.scalar(select(Role).where(Role.code == role.value))
     user = User(**data)
     db_session.add(user)
     await db_session.commit()

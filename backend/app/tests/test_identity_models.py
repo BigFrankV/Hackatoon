@@ -2,10 +2,12 @@ import uuid
 from datetime import UTC, datetime
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.models import AuditLog, Company, RefreshToken, User
 from app.models.enums import CompanyStatus, UserRole, UserStatus
+from app.models.role import Role
 
 
 async def _create_company(db_session, **overrides) -> Company:
@@ -34,6 +36,8 @@ async def _create_user(db_session, **overrides) -> User:
         "status": UserStatus.ACTIVE,
     }
     data.update(overrides)
+    role = data["role"]
+    data["role"] = await db_session.scalar(select(Role).where(Role.code == role.value))
     user = User(**data)
     db_session.add(user)
     await db_session.commit()
@@ -97,7 +101,7 @@ async def test_super_admin_without_company_is_allowed(db_session):
     )
 
     assert user.company_id is None
-    assert user.role == UserRole.SUPER_ADMIN
+    assert user.role.code == UserRole.SUPER_ADMIN.value
 
 
 @pytest.mark.asyncio
@@ -111,7 +115,7 @@ async def test_company_user_with_company_is_allowed(db_session):
     )
 
     assert user.company_id == company.id
-    assert user.role == UserRole.ADMIN
+    assert user.role.code == UserRole.ADMIN.value
 
 
 @pytest.mark.asyncio
@@ -242,13 +246,14 @@ async def test_audit_log_allows_system_event_without_actor(db_session):
 @pytest.mark.asyncio
 async def test_user_defaults(db_session):
     company = await _create_company(db_session)
+    role = await db_session.scalar(select(Role).where(Role.code == UserRole.USER.value))
     user = User(
         company_id=company.id,
         email="defaults@acme.com",
         first_name="Default",
         last_name="User",
         password_hash="hashed",
-        role=UserRole.USER,
+        role=role,
     )
     db_session.add(user)
     await db_session.commit()

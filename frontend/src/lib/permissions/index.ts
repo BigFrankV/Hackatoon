@@ -16,7 +16,9 @@ export function hasPermission(
   permission: string,
 ): boolean {
   if (!user) return false;
-  if (user.permissions?.includes(permission)) return true;
+  if (user.permissions !== undefined) {
+    return user.permissions.includes(permission);
+  }
 
   const rolePermissions: Record<UserRole, string[]> = {
     super_admin: [
@@ -51,8 +53,32 @@ export function hasPermission(
       "profile.update_own",
       "profile.change_password",
       "audit.read_company",
+      "tenders.read",
+      "tenders.manage",
+      "documents.read",
+      "documents.manage",
+      "analysis.read",
+      "analysis.run",
+      "analysis.decide",
+      "chat.use",
+      "offers.read",
+      "offers.manage",
     ],
-    user: ["profile.read_own", "profile.update_own", "profile.change_password"],
+    user: [
+      "profile.read_own",
+      "profile.update_own",
+      "profile.change_password",
+      "tenders.read",
+      "tenders.manage",
+      "documents.read",
+      "documents.manage",
+      "analysis.read",
+      "analysis.run",
+      "analysis.decide",
+      "chat.use",
+      "offers.read",
+      "offers.manage",
+    ],
   };
 
   return rolePermissions[user.role]?.includes(permission) ?? false;

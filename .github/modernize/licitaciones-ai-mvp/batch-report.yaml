@@ -1,0 +1,174 @@
+batch_id: "B02"
+completed_tasks: ["T001", "T004", "T005", "T006", "T007", "T008", "T009", "T010", "T011", "T012", "T013", "T014"]
+blocked_tasks: []
+files_changed:
+  T001:
+    - file: ".github/modernize/assessment/engines/facts/data-architecture.md"
+      change_type: "modified"
+      description: "Finalize approved physical-schema constraints, tenant ownership, and deletion rules."
+    - file: ".github/modernize/licitaciones-ai-mvp/spec.md"
+      change_type: "modified"
+      description: "Close physical schema review gate; retain vector model/dimension gate."
+    - file: ".github/modernize/licitaciones-ai-mvp/research.md"
+      change_type: "modified"
+      description: "Record approved retention and migration decisions."
+  T005:
+    - file: "backend/app/tests/test_migrations.py"
+      change_type: "modified"
+      description: "Add a legacy-user role/scope backfill regression test."
+    - file: ".github/modernize/licitaciones-ai-mvp/plan.md"
+      change_type: "modified"
+      description: "Mark the migration-test task complete."
+  T006:
+    - file: "backend/alembic/versions/0002_relational_rbac.py"
+      change_type: "created"
+      description: "Create and seed relational roles, permissions, and grants; backfill users."
+    - file: "backend/app/models/"
+      change_type: "modified"
+      description: "Add role and permission mappings and replace users.role enum storage."
+    - file: "backend/app/api/dependencies/"
+      change_type: "modified"
+      description: "Load relational grants and enforce permissions from the database."
+    - file: "backend/app/services/"
+      change_type: "modified"
+      description: "Update login, account, company, bootstrap, and seed flows for relational roles."
+    - file: "backend/app/tests/"
+      change_type: "modified"
+      description: "Update role fixtures and add relational authorization and migration regression tests."
+    - file: "backend/alembic/versions/0003_ai_procurement.py"
+      change_type: "created"
+      description: "Add AI policy, procurement catalog, tenant tracking, and milestone/history schema."
+    - file: "backend/alembic/versions/0004_documents_processing.py"
+      change_type: "created"
+      description: "Add private document, version, extraction, chunk, and durable processing-job schema."
+    - file: "backend/alembic/versions/0005_analysis_chat_offers.py"
+      change_type: "created"
+      description: "Add analysis, evidence, decision, conversation, citation, and offer schema."
+    - file: "backend/app/tests/test_product_schema_migration.py"
+      change_type: "created"
+      description: "Verify migrated table inventory, tenant constraints, and domain checks."
+    - file: ".github/modernize/licitaciones-ai-mvp/artifacts/data-model.md"
+      change_type: "modified"
+      description: "Document the implemented RBAC schema and migration state."
+    - file: ".github/modernize/assessment/engines/facts/data-architecture.md"
+      change_type: "modified"
+      description: "Update current schema and migration status after implementing RBAC."
+upstream_artifacts_consumed:
+  T005:
+    - artifact: ".github/modernize/licitaciones-ai-mvp/plan.md#T005"
+      used_for: "Migration test task requirements and upgrade path."
+    - artifact: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-001"
+      used_for: "Preserve authenticated identity authority."
+  T006:
+    - artifact: ".github/modernize/licitaciones-ai-mvp/constitution.md"
+      used_for: "Preserve identity and access behavior through a reversible migration."
+    - artifact: ".github/modernize/licitaciones-ai-mvp/artifacts/data-model.md"
+      used_for: "Relational role/permission shape and role-scope integrity."
+    - artifact: ".github/modernize/assessment/engines/facts/data-architecture.md"
+      used_for: "Approved product entity fields, relationships, and physical constraints."
+evidence_mapping:
+  T001:
+    - upstream: ".github/modernize/licitaciones-ai-mvp/plan.md#T001"
+      output: ".github/modernize/assessment/engines/facts/data-architecture.md"
+      evidence: "Approved physical defaults and role backfill are documented; user explicitly approved them."
+  T005:
+    - upstream: ".github/modernize/licitaciones-ai-mvp/plan.md#T005"
+      output: "backend/app/tests/test_migrations.py"
+      evidence: "Fresh SQLite upgrade and pre-existing-user backfill are covered; backend suite passes."
+  T006:
+    - upstream: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-001"
+      output: "backend/alembic/versions/0002_relational_rbac.py"
+      evidence: "Existing role values and identity data are retained in the migration backfill."
+    - upstream: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-002"
+      output: "backend/app/api/dependencies/permissions.py"
+      evidence: "Endpoint authorization reads the user's persisted role-permission grants; regression test verifies a DB grant changes 403 to 200."
+    - upstream: ".github/modernize/licitaciones-ai-mvp/plan.md#T006"
+      output: "backend/alembic/versions/0003_ai_procurement.py"
+      evidence: "AI policy, public procurement catalog, tenant tracking, constraints, and indexes are migrated."
+    - upstream: ".github/modernize/licitaciones-ai-mvp/plan.md#T006"
+      output: "backend/alembic/versions/0004_documents_processing.py"
+      evidence: "Document metadata, immutable versions, extraction, chunks, and retryable job schema are migrated."
+    - upstream: ".github/modernize/licitaciones-ai-mvp/plan.md#T006"
+      output: "backend/alembic/versions/0005_analysis_chat_offers.py"
+      evidence: "Analysis provenance, human decisions, tenant conversations, citations, and versioned offers are migrated."
+    - upstream: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-016"
+      output: "backend/app/tests/test_product_schema_migration.py"
+      evidence: "SQLite integration test proves cross-company assignment and tender-document relationships are rejected."
+traceability:
+  - requirement: "REQ-001"
+    plan_item: "2.1"
+    task: "T005"
+    files: ["backend/app/tests/test_migrations.py"]
+    status: "completed"
+  - requirement: "REQ-001"
+    plan_item: "2.1"
+    task: "T006"
+    files:
+      - "backend/alembic/versions/0002_relational_rbac.py"
+      - "backend/app/models/user.py"
+      - "backend/app/api/dependencies/auth.py"
+    status: "completed"
+  - requirement: "REQ-002"
+    plan_item: "2.1"
+    task: "T006"
+    files:
+      - "backend/app/api/dependencies/permissions.py"
+      - "backend/app/tests/test_rbac_relational.py"
+    status: "completed"
+  - requirement: "REQ-010, REQ-011, REQ-012, REQ-014, REQ-015, REQ-016, REQ-017, REQ-018, REQ-019, REQ-020, REQ-021, REQ-023"
+    plan_item: "2.1"
+    task: "T006"
+    files:
+      - "backend/alembic/versions/0003_ai_procurement.py"
+      - "backend/alembic/versions/0004_documents_processing.py"
+      - "backend/alembic/versions/0005_analysis_chat_offers.py"
+      - "backend/app/tests/test_product_schema_migration.py"
+    status: "completed"
+protocol_violation: false
+errors: []
+warnings:
+  - "The test suite emits 50 existing JWT HMAC key-length warnings."
+  - "The full Alembic Ruff selector reports pre-existing style violations in 0001_initial_identity.py; all changed migration and test files pass Ruff."
+test_results:
+  T005:
+    command: "python -m pytest app/tests -q"
+    passed: 57
+    failed: 0
+    skipped: 0
+    failures: []
+  T006:
+    command: "python -m pytest app/tests -q"
+    passed: 57
+    failed: 0
+    skipped: 0
+    failures: []
+phase_2_validation:
+  backend:
+    command: "backend/.venv/Scripts/python.exe -m pytest backend/app/tests -q"
+    passed: 73
+    failed: 0
+    skipped: 1
+    lint: "backend/.venv/Scripts/ruff.exe check backend/app — passed"
+  frontend:
+    command: "typescript_validate_runtime standalone"
+    assertions:
+      - name: "frontend-build"
+        status: "passed"
+      - name: "tests-pass"
+        status: "passed"
+        passed: 2
+        failed: 0
+        skipped: 0
+      - name: "frontend-home-200"
+        status: "passed"
+  database:
+    alembic_revision: "0006_foundation_jobs_permissions"
+    api_health_http_status: 200
+    postgres_integration:
+      command: "python -m pytest backend/app/tests/test_postgres_integration.py -q with TEST_DATABASE_URL from local .env"
+      passed: 1
+      failed: 0
+      skipped: 0
+  remaining_gates:
+    - "T002: live Mercado Público validation still requires the user's official API ticket."
+    - "T003: embedding model and vector dimension remain undecided; vector persistence is deferred."

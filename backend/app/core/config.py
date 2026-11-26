@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -41,6 +41,14 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://licitaciones:licitaciones_dev_password@localhost:5432/licitaciones"
     )
     database_echo: bool = False
+
+    ollama_base_url: str = "http://localhost:11434"
+    procurement_api_ticket: SecretStr | None = None
+    ai_provider_timeout_seconds: float = Field(default=30.0, gt=0, le=600)
+    procurement_source_timeout_seconds: float = Field(default=20.0, gt=0, le=600)
+    storage_timeout_seconds: float = Field(default=30.0, gt=0, le=600)
+    worker_poll_interval_seconds: float = Field(default=2.0, gt=0, le=300)
+    worker_lease_seconds: int = Field(default=300, gt=0, le=86400)
 
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 

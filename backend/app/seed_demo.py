@@ -12,6 +12,7 @@ from app.db.session import AsyncSessionFactory
 from app.models.company import Company
 from app.models.enums import CompanyStatus, UserRole, UserStatus
 from app.models.user import User
+from app.services.role_service import get_role
 
 DEMO_COMPANIES = (
     {
@@ -74,10 +75,11 @@ async def seed_demo_data(
             user_result = await db.execute(select(User).where(User.email == email))
             user = user_result.scalar_one_or_none()
             if user is not None:
-                if user.company_id != company.id or user.role != role:
+                if user.company_id != company.id or user.role.code != role.value:
                     raise ValueError(f"Demo user email already belongs to a different account: {email}")
                 continue
 
+            role_record = await get_role(db, role)
             db.add(
                 User(
                     company_id=company.id,
@@ -85,7 +87,7 @@ async def seed_demo_data(
                     first_name=first_name,
                     last_name=last_name,
                     password_hash=hash_password(password),
-                    role=role,
+                    role=role_record,
                     status=UserStatus.ACTIVE,
                     must_change_password=True,
                 )

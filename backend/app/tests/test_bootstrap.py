@@ -6,6 +6,7 @@ from sqlalchemy import select
 from app.bootstrap import bootstrap_superadmin
 from app.core.security import verify_password
 from app.models.enums import UserRole, UserStatus
+from app.models.role import Role
 from app.models.user import User
 
 
@@ -18,7 +19,9 @@ async def test_bootstrap_creates_superadmin_once(db_session):
     )
 
     assert created is True
-    result = await db_session.execute(select(User).where(User.role == UserRole.SUPER_ADMIN))
+    result = await db_session.execute(
+        select(User).join(User.role).where(Role.code == UserRole.SUPER_ADMIN.value)
+    )
     admin = result.scalar_one()
     assert admin.email == "admin@example.com"
     assert admin.status == UserStatus.ACTIVE

@@ -14,6 +14,7 @@ from app.api.dependencies.database import get_db
 from app.core.exceptions import AuthenticationError, PermissionDeniedError
 from app.core.security import decode_access_token
 from app.models.enums import CompanyStatus, UserStatus
+from app.models.role import Role
 from app.models.user import User
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -44,7 +45,14 @@ async def get_current_user(
     except (TypeError, ValueError) as exc:
         raise AuthenticationError("Invalid token subject", code="invalid_token_subject") from exc
 
-    stmt = select(User).options(selectinload(User.company)).where(User.id == user_id)
+    stmt = (
+        select(User)
+        .options(
+            selectinload(User.company),
+            selectinload(User.role).selectinload(Role.permissions),
+        )
+        .where(User.id == user_id)
+    )
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
     if user is None:
@@ -66,11 +74,7 @@ def require_roles(*roles: str) -> Callable:
     allowed = set(roles)
 
     async def dependency(current_user: User = Depends(get_current_user)) -> User:
-        role_value = (
-            current_user.role.value
-            if hasattr(current_user.role, "value")
-            else str(current_user.role)
-        )
+        role_value = current_user.role.code
         if role_value not in allowed:
             raise PermissionDeniedError("Not enough permissions", code="forbidden")
         return current_user

@@ -1,0 +1,239 @@
+metadata:
+  generated: "2026-11-26"
+  source_spec: "../spec.md"
+  target_plan: "../plan.md"
+
+summary:
+  total_requirements: 25
+  covered_requirements: 25
+  missing_requirements: 0
+  coverage_percentage: 100.0
+
+requirements:
+  - req_id: "REQ-001"
+    req_description: "Existing authenticated user/company is the access authority"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Foundational Capabilities"
+      items: [{item_id: "2.2", description: "Tenant access and audit boundaries"}]
+    notes: "Also validated in opportunity and tracking user stories."
+  - req_id: "REQ-002"
+    req_description: "Server-side permissions cover all new operations"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Foundational Capabilities"
+      items: [{item_id: "2.2", description: "Tenant access and audit boundaries"}]
+    notes: "API authorization remains authoritative if frontend guards are bypassed."
+  - req_id: "REQ-003"
+    req_description: "Catalog providers/models and capabilities"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-4"
+      phase_name: "Configure and Choose an Ollama Model"
+      items: [{item_id: "4.1", description: "Ollama adapter and server-side registry"}]
+    notes: ""
+  - req_id: "REQ-004"
+    req_description: "Company model allow-list and defaults"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-4"
+      phase_name: "Configure and Choose an Ollama Model"
+      items: [{item_id: "4.2", description: "Company model policies and embedding separation"}]
+    notes: ""
+  - req_id: "REQ-005"
+    req_description: "Select allowed chat model and record model used"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-4"
+      phase_name: "Configure and Choose an Ollama Model"
+      items:
+        - {item_id: "4.2", description: "Company policy and user preference"}
+        - {item_id: "8.2", description: "Provider-aware chat endpoint and UI"}
+    notes: "Analysis provenance is covered in item 6.2."
+  - req_id: "REQ-006"
+    req_description: "Separate chat and embedding models; prevent incompatible vectors"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-4"
+      phase_name: "Configure and Choose an Ollama Model"
+      items: [{item_id: "4.2", description: "Company model policies and embedding separation"}]
+    notes: "Embedding choice/dimension is a Phase 1 gate."
+  - req_id: "REQ-007"
+    req_description: "Provider credentials remain server-side and out of logs"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Foundational Capabilities"
+      items: [{item_id: "2.3", description: "Provider, source, and storage adapters"}]
+    notes: ""
+  - req_id: "REQ-008"
+    req_description: "Search public opportunities through the official source"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-3"
+      phase_name: "Find and Follow an Opportunity"
+      items:
+        - {item_id: "3.1", description: "Official source integration"}
+        - {item_id: "3.3", description: "Search/follow/isolation flows"}
+    notes: "Requires verified availability and a valid ticket."
+  - req_id: "REQ-009"
+    req_description: "Display source, official link, title, buyer, status, dates"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-3"
+      phase_name: "Find and Follow an Opportunity"
+      items: [{item_id: "3.3", description: "Search, follow, and isolation flows"}]
+    notes: "Fields depend on official response verification."
+  - req_id: "REQ-010"
+    req_description: "Separate shared opportunity facts from private tracking"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-3"
+      phase_name: "Find and Follow an Opportunity"
+      items:
+        - {item_id: "3.2", description: "Shared catalogue and company tracking"}
+        - {item_id: "3.3", description: "Search and follow"}
+    notes: "Deduplication enforced by database and service."
+  - req_id: "REQ-011"
+    req_description: "Update tracking status, owner, milestones, notes, and history"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-7"
+      phase_name: "Track the Opportunity Lifecycle"
+      items: [{item_id: "7.1", description: "Internal lifecycle and history"}]
+    notes: ""
+  - req_id: "REQ-012"
+    req_description: "Retain source-document provenance and fetched metadata"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-5"
+      phase_name: "Add and Process Tender Documents"
+      items: [{item_id: "5.2", description: "Conditional source-document retrieval"}]
+    notes: "Implement source retrieval only if the official contract confirms it."
+  - req_id: "REQ-013"
+    req_description: "Allow PDF/DOCX upload fallback"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-5"
+      phase_name: "Add and Process Tender Documents"
+      items: [{item_id: "5.1", description: "Private upload and versioning"}]
+    notes: ""
+  - req_id: "REQ-014"
+    req_description: "Version documents and expose status, failures, retries"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-5"
+      phase_name: "Add and Process Tender Documents"
+      items:
+        - {item_id: "2.4", description: "Durable processing"}
+        - {item_id: "5.3", description: "Extraction and chunk processing"}
+    notes: ""
+  - req_id: "REQ-015"
+    req_description: "Extract text and retrievable fragments with source location"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-5"
+      phase_name: "Add and Process Tender Documents"
+      items: [{item_id: "5.3", description: "Extract, chunk, and process"}]
+    notes: "Page/location quality is tested for supported document formats."
+  - req_id: "REQ-016"
+    req_description: "Tenant-scope every file, retrieval, analysis, chat, and package"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Foundational Capabilities"
+      items: [{item_id: "2.2", description: "Tenant access boundaries"}]
+    notes: "Repeated in each relevant user-story test suite."
+  - req_id: "REQ-017"
+    req_description: "Create analysis runs and expose progress/completion/failure"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-6"
+      phase_name: "Review Traceable Go/No-Go Analysis"
+      items: [{item_id: "6.1", description: "Analysis runs and deterministic checks"}]
+    notes: ""
+  - req_id: "REQ-018"
+    req_description: "Classify requirements and show evidence, risks, deadlines"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-6"
+      phase_name: "Review Traceable Go/No-Go Analysis"
+      items:
+        - {item_id: "6.1", description: "Deterministic and AI-assisted analysis"}
+        - {item_id: "6.2", description: "Findings and evidence"}
+    notes: ""
+  - req_id: "REQ-019"
+    req_description: "Retain model/ruleset/document versions and result provenance"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-6"
+      phase_name: "Review Traceable Go/No-Go Analysis"
+      items: [{item_id: "6.2", description: "Evidence and reproducibility data"}]
+    notes: ""
+  - req_id: "REQ-020"
+    req_description: "Store human review decision separately from AI output"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-6"
+      phase_name: "Review Traceable Go/No-Go Analysis"
+      items: [{item_id: "6.3", description: "Human decisions and report"}]
+    notes: ""
+  - req_id: "REQ-021"
+    req_description: "Support company/tender-scoped conversations with citations"
+    priority: "P2"
+    plan_mapping:
+      phase: "Phase-8"
+      phase_name: "Ask Grounded Questions in Context"
+      items: [{item_id: "8.1", description: "Tenant-scoped conversation and retrieval"}]
+    notes: ""
+  - req_id: "REQ-022"
+    req_description: "Distinguish missing evidence and avoid fabricated citations"
+    priority: "P2"
+    plan_mapping:
+      phase: "Phase-8"
+      phase_name: "Ask Grounded Questions in Context"
+      items:
+        - {item_id: "8.1", description: "Tenant-scoped retrieval"}
+        - {item_id: "8.2", description: "Provider-aware chat behavior"}
+    notes: ""
+  - req_id: "REQ-023"
+    req_description: "Create versioned offers with checklist and selected documents"
+    priority: "P3"
+    plan_mapping:
+      phase: "Phase-9"
+      phase_name: "Prepare a Versioned Offer Package"
+      items:
+        - {item_id: "9.1", description: "Offer versions and selected documents"}
+        - {item_id: "9.2", description: "Generate and deliver package"}
+    notes: ""
+  - req_id: "REQ-024"
+    req_description: "Audit significant actions without secrets or unnecessary content"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-2"
+      phase_name: "Foundational Capabilities"
+      items: [{item_id: "2.2", description: "Tenant access and audit boundaries"}]
+    notes: "Feature-specific audit tests also appear in later phases."
+  - req_id: "REQ-025"
+    req_description: "Keep manual document fallback and explicit total-failure behavior"
+    priority: "P1"
+    plan_mapping:
+      phase: "Phase-5"
+      phase_name: "Add and Process Tender Documents"
+      items:
+        - {item_id: "5.2", description: "Conditional source-document retrieval"}
+        - {item_id: "5.4", description: "Document management and failure UI"}
+    notes: ""
+
+missing_requirements: []
+orphan_plan_items: []
+
+validation:
+  passed: true
+  errors: []
+  warnings:
+    - "The user approved the spec and proposed schema as planning baseline; exact migration details still require review."
+    - "Mercado Público ticket, service availability, rate limits, and document access remain unverified; this gates only live source integration/retrieval."
+    - "The Ollama embedding model/dimension remain to be selected; hosted AI and production cloud storage are intentionally deferred."

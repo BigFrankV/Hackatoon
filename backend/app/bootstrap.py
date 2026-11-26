@@ -11,7 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import hash_password, normalize_email
 from app.db.session import AsyncSessionFactory
 from app.models.enums import UserRole, UserStatus
+from app.models.role import Role
 from app.models.user import User
+from app.services.role_service import get_role
 
 
 async def bootstrap_superadmin(db: AsyncSession, *, email: str, password: str) -> bool:
@@ -20,7 +22,7 @@ async def bootstrap_superadmin(db: AsyncSession, *, email: str, password: str) -
         raise ValueError("Bootstrap super_admin password must be at least 12 characters.")
 
     existing_admin = await db.execute(
-        select(User.id).where(User.role == UserRole.SUPER_ADMIN).limit(1)
+        select(User.id).join(User.role).where(Role.code == UserRole.SUPER_ADMIN.value).limit(1)
     )
     if existing_admin.scalar_one_or_none() is not None:
         return False
@@ -29,6 +31,7 @@ async def bootstrap_superadmin(db: AsyncSession, *, email: str, password: str) -
     if existing_email.scalar_one_or_none() is not None:
         raise ValueError("Bootstrap email already belongs to a non-super_admin user.")
 
+    role = await get_role(db, UserRole.SUPER_ADMIN)
     db.add(
         User(
             company_id=None,
@@ -36,7 +39,7 @@ async def bootstrap_superadmin(db: AsyncSession, *, email: str, password: str) -
             first_name="Platform",
             last_name="Admin",
             password_hash=hash_password(password),
-            role=UserRole.SUPER_ADMIN,
+            role=role,
             status=UserStatus.ACTIVE,
             must_change_password=True,
         )
@@ -47,7 +50,7 @@ async def bootstrap_superadmin(db: AsyncSession, *, email: str, password: str) -
     except IntegrityError:
         await db.rollback()
         existing_admin = await db.execute(
-            select(User.id).where(User.role == UserRole.SUPER_ADMIN).limit(1)
+            select(User.id).join(User.role).where(Role.code == UserRole.SUPER_ADMIN.value).limit(1)
         )
         if existing_admin.scalar_one_or_none() is not None:
             return False

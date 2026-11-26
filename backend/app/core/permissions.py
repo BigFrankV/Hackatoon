@@ -31,6 +31,16 @@ PERMISSIONS: dict[str, set[str]] = {
     "profile.change_password": {"super_admin", "admin", "user"},
     "audit.read_global": {"super_admin"},
     "audit.read_company": {"admin"},
+    "tenders.read": {"admin", "user"},
+    "tenders.manage": {"admin", "user"},
+    "documents.read": {"admin", "user"},
+    "documents.manage": {"admin", "user"},
+    "analysis.read": {"admin", "user"},
+    "analysis.run": {"admin", "user"},
+    "analysis.decide": {"admin", "user"},
+    "chat.use": {"admin", "user"},
+    "offers.read": {"admin", "user"},
+    "offers.manage": {"admin", "user"},
 }
 
 

@@ -72,8 +72,6 @@ services:
         condition: service_completed_successfully
     command: python -m app.seed_demo
     restart: "no"
-    profiles:
-      - dev
 
   backend:
     build:
@@ -157,8 +155,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-    profiles:
-      - dev
 
 volumes:
   postgres_data:

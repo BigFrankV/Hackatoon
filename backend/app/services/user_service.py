@@ -20,9 +20,11 @@ from app.core.security import (
 )
 from app.models.company import Company
 from app.models.enums import CompanyStatus, UserRole, UserStatus
+from app.models.role import Role
 from app.models.user import User
 from app.services import auth_service
 from app.services.audit_service import record_audit_event
+from app.services.role_service import get_role
 
 
 def _utcnow() -> datetime:
@@ -53,7 +55,7 @@ def _user_to_admin_dict(user: User) -> dict:
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "role": user.role,
+        "role": user.role.code,
         "status": user.status,
         "company_id": user.company_id,
         "company": company_payload,
@@ -85,7 +87,11 @@ async def _ensure_email_available(
 
 
 async def _get_user_global_or_404(db: AsyncSession, user_id: uuid.UUID) -> User:
-    stmt = select(User).options(selectinload(User.company)).where(User.id == user_id)
+    stmt = (
+        select(User)
+        .options(selectinload(User.company), selectinload(User.role))
+        .where(User.id == user_id)
+    )
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
     if user is None:
@@ -98,7 +104,7 @@ async def _get_user_in_company_or_404(
 ) -> User:
     stmt = (
         select(User)
-        .options(selectinload(User.company))
+        .options(selectinload(User.company), selectinload(User.role))
         .where(User.id == user_id, User.company_id == company_id)
     )
     result = await db.execute(stmt)
@@ -128,7 +134,7 @@ async def _ensure_company_active_for_membership(db: AsyncSession, company_id: uu
 async def _count_active_admins(db: AsyncSession, *, company_id: uuid.UUID, exclude_user_id: uuid.UUID | None = None) -> int:
     stmt = select(func.count(User.id)).where(
         User.company_id == company_id,
-        User.role == UserRole.ADMIN,
+        User.role.has(Role.code == UserRole.ADMIN.value),
         User.status == UserStatus.ACTIVE,
     )
     if exclude_user_id is not None:
@@ -139,7 +145,7 @@ async def _count_active_admins(db: AsyncSession, *, company_id: uuid.UUID, exclu
 async def _ensure_not_last_active_admin(
     db: AsyncSession, *, user: User, actor: User, allow_super_admin_override: bool
 ) -> None:
-    if user.role != UserRole.ADMIN or user.status != UserStatus.ACTIVE or user.company_id is None:
+    if user.role.code != UserRole.ADMIN.value or user.status != UserStatus.ACTIVE or user.company_id is None:
         return
     await db.execute(
         select(Company.id).where(Company.id == user.company_id).with_for_update()
@@ -147,7 +153,7 @@ async def _ensure_not_last_active_admin(
     remaining = await _count_active_admins(db, company_id=user.company_id, exclude_user_id=user.id)
     if remaining > 0:
         return
-    if allow_super_admin_override and actor.role == UserRole.SUPER_ADMIN:
+    if allow_super_admin_override and actor.role.code == UserRole.SUPER_ADMIN.value:
         return
     raise ConflictError(
         "Cannot deactivate or demote the last active admin of the company",
@@ -170,15 +176,15 @@ async def list_users_global(
     status: UserStatus | None = None,
     search: str | None = None,
 ) -> dict:
-    stmt = select(User).options(selectinload(User.company))
+    stmt = select(User).options(selectinload(User.company), selectinload(User.role))
     count_stmt = select(func.count()).select_from(User)
 
     if company_id is not None:
         stmt = stmt.where(User.company_id == company_id)
         count_stmt = count_stmt.where(User.company_id == company_id)
     if role is not None:
-        stmt = stmt.where(User.role == role)
-        count_stmt = count_stmt.where(User.role == role)
+        stmt = stmt.where(User.role.has(Role.code == role.value))
+        count_stmt = count_stmt.where(User.role.has(Role.code == role.value))
     if status is not None:
         stmt = stmt.where(User.status == status)
         count_stmt = count_stmt.where(User.status == status)
@@ -220,6 +226,7 @@ async def create_user_global(
     await _ensure_email_available(db, email=email)
     if company_id is not None:
         await _ensure_company_active_for_membership(db, company_id)
+    role_record = await get_role(db, role)
 
     if role == UserRole.SUPER_ADMIN:
         # Restricted procedure: allowed for super_admin endpoint but audited.
@@ -232,7 +239,7 @@ async def create_user_global(
         first_name=payload["first_name"].strip(),
         last_name=payload["last_name"].strip(),
         password_hash=hash_password(temporary_password),
-        role=role,
+        role=role_record,
         status=status,
         must_change_password=True,
     )
@@ -248,7 +255,7 @@ async def create_user_global(
         company_id=user.company_id,
         ip_address=ip_address,
         user_agent=user_agent,
-        metadata={"role": role.value, "status": status.value, "scope": "global"},
+        metadata={"role": role_record.code, "status": status.value, "scope": "global"},
     )
 
     try:
@@ -284,12 +291,12 @@ async def update_user_global(
     ip_address, user_agent = _client_meta(request)
     user = await _get_user_global_or_404(db, user_id)
 
-    old_role = user.role
+    old_role = UserRole(user.role.code)
     old_company_id = user.company_id
     old_status = user.status
     changes: dict[str, dict[str, object]] = {}
 
-    next_role = payload.get("role", user.role)
+    next_role = payload.get("role", old_role)
     next_company_id = payload.get("company_id", user.company_id)
     _validate_role_company_constraints(role=next_role, company_id=next_company_id)
 
@@ -304,12 +311,12 @@ async def update_user_global(
             changes["last_name"] = {"from": user.last_name, "to": new_value}
             user.last_name = new_value
 
-    if "role" in payload and payload["role"] is not None and payload["role"] != user.role:
+    if "role" in payload and payload["role"] is not None and payload["role"] != old_role:
         if actor.id == user.id:
             raise BadRequestError("Cannot change your own role", code="self_role_change_forbidden")
         await _ensure_not_last_active_admin(db, user=user, actor=actor, allow_super_admin_override=True)
-        user.role = payload["role"]
-        changes["role"] = {"from": old_role.value, "to": user.role.value}
+        user.role = await get_role(db, payload["role"])
+        changes["role"] = {"from": old_role.value, "to": user.role.code}
 
     if "company_id" in payload and payload["company_id"] != user.company_id:
         if actor.id == user.id:
@@ -320,7 +327,7 @@ async def update_user_global(
             await _ensure_company_active_for_membership(db, payload["company_id"])
         if old_role == UserRole.ADMIN and old_company_id is not None:
             remaining = await _count_active_admins(db, company_id=old_company_id, exclude_user_id=user.id)
-            if remaining == 0 and not (actor.role == UserRole.SUPER_ADMIN):
+            if remaining == 0 and actor.role.code != UserRole.SUPER_ADMIN.value:
                 raise ConflictError(
                     "Cannot transfer the last active admin of the company",
                     code="last_active_admin",
@@ -377,7 +384,7 @@ async def update_user_global(
         }
         user.must_change_password = bool(payload["must_change_password"])
 
-    _validate_role_company_constraints(role=user.role, company_id=user.company_id)
+    _validate_role_company_constraints(role=UserRole(user.role.code), company_id=user.company_id)
 
     if changes:
         await record_audit_event(
@@ -401,7 +408,7 @@ async def update_user_global(
                 company_id=user.company_id,
                 ip_address=ip_address,
                 user_agent=user_agent,
-                metadata={"from": old_role.value, "to": user.role.value},
+                metadata={"from": old_role.value, "to": user.role.code},
             )
         if "status" in changes:
             if user.status == UserStatus.ACTIVE:
@@ -590,12 +597,16 @@ async def list_company_users_scoped(
     search: str | None = None,
 ) -> dict:
     await _get_company_or_404(db, company_id)
-    stmt = select(User).options(selectinload(User.company)).where(User.company_id == company_id)
+    stmt = (
+        select(User)
+        .options(selectinload(User.company), selectinload(User.role))
+        .where(User.company_id == company_id)
+    )
     count_stmt = select(func.count()).select_from(User).where(User.company_id == company_id)
 
     if role is not None:
-        stmt = stmt.where(User.role == role)
-        count_stmt = count_stmt.where(User.role == role)
+        stmt = stmt.where(User.role.has(Role.code == role.value))
+        count_stmt = count_stmt.where(User.role.has(Role.code == role.value))
     if status is not None:
         stmt = stmt.where(User.status == status)
         count_stmt = count_stmt.where(User.status == status)
@@ -637,6 +648,7 @@ async def create_company_user_scoped(
     if status not in {UserStatus.ACTIVE, UserStatus.INVITED, UserStatus.INACTIVE}:
         raise BadRequestError("Invalid user status", code="invalid_user_status")
 
+    role_record = await get_role(db, UserRole.USER)
     temporary_password = generate_temporary_password(20)
     user = User(
         company_id=company.id,
@@ -644,7 +656,7 @@ async def create_company_user_scoped(
         first_name=payload["first_name"].strip(),
         last_name=payload["last_name"].strip(),
         password_hash=hash_password(temporary_password),
-        role=UserRole.USER,
+        role=role_record,
         status=status,
         must_change_password=True,
     )
@@ -660,7 +672,7 @@ async def create_company_user_scoped(
         company_id=company.id,
         ip_address=ip_address,
         user_agent=user_agent,
-        metadata={"role": UserRole.USER.value, "status": status.value, "scope": "company"},
+        metadata={"role": role_record.code, "status": status.value, "scope": "company"},
     )
 
     try:

@@ -14,7 +14,6 @@ from app.core.exceptions import (
     PermissionDeniedError,
     RateLimitError,
 )
-from app.core.permissions import permissions_for_role
 from app.core.rate_limit import login_rate_limiter
 from app.core.security import (
     create_access_token,
@@ -27,6 +26,7 @@ from app.core.security import (
 from app.models.audit_log import AuditLog  # noqa: F401
 from app.models.enums import CompanyStatus, UserStatus
 from app.models.refresh_token import RefreshToken
+from app.models.role import Role
 from app.models.user import User
 from app.services.audit_service import record_audit_event
 
@@ -53,14 +53,26 @@ def _client_meta(request) -> tuple[str | None, str | None]:
 
 async def _get_user_by_email(db: AsyncSession, email: str) -> User | None:
     stmt: Select[tuple[User]] = (
-        select(User).options(selectinload(User.company)).where(User.email == normalize_email(email))
+        select(User)
+        .options(
+            selectinload(User.company),
+            selectinload(User.role).selectinload(Role.permissions),
+        )
+        .where(User.email == normalize_email(email))
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
 async def _get_user_by_id(db: AsyncSession, user_id: uuid.UUID) -> User | None:
-    stmt = select(User).options(selectinload(User.company)).where(User.id == user_id)
+    stmt = (
+        select(User)
+        .options(
+            selectinload(User.company),
+            selectinload(User.role).selectinload(Role.permissions),
+        )
+        .where(User.id == user_id)
+    )
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -199,19 +211,18 @@ def _build_user_public_payload(user: User) -> dict:
             "display_name": user.company.display_name,
             "legal_name": user.company.legal_name,
         }
-    role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
     return {
         "id": user.id,
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "role": user.role,
+        "role": user.role.code,
         "status": user.status,
         "company_id": user.company_id,
         "company": company_payload,
         "must_change_password": user.must_change_password,
         "last_login_at": user.last_login_at,
-        "permissions": permissions_for_role(role_value),
+        "permissions": sorted(permission.code for permission in user.role.permissions),
     }
 
 
@@ -281,7 +292,7 @@ async def login(db: AsyncSession, *, request, email: str, password: str) -> dict
 
     access_token, expires_in, _ = create_access_token(
         subject=str(user.id),
-        role=user.role.value,
+        role=user.role.code,
         company_id=str(user.company_id) if user.company_id else None,
         expires_minutes=settings.access_token_expire_minutes,
     )
@@ -301,7 +312,10 @@ async def login(db: AsyncSession, *, request, email: str, password: str) -> dict
         metadata={"refresh_token_id": str(refresh_record.id)},
     )
     await db.commit()
-    await db.refresh(user)
+    refreshed_user = await _get_user_by_id(db, user.id)
+    if refreshed_user is None:
+        raise AuthenticationError("User not found", code="user_not_found")
+    user = refreshed_user
 
     return {
         "access_token": access_token,
@@ -320,7 +334,12 @@ async def refresh_session(db: AsyncSession, *, request, raw_refresh_token: str |
     token_hash = hash_refresh_token(raw_refresh_token)
     stmt = (
         select(RefreshToken)
-        .options(selectinload(RefreshToken.user).selectinload(User.company))
+        .options(
+            selectinload(RefreshToken.user).selectinload(User.company),
+            selectinload(RefreshToken.user)
+            .selectinload(User.role)
+            .selectinload(Role.permissions),
+        )
         .where(RefreshToken.token_hash == token_hash)
     )
     result = await db.execute(stmt)
@@ -398,7 +417,7 @@ async def refresh_session(db: AsyncSession, *, request, raw_refresh_token: str |
     settings = get_settings()
     access_token, expires_in, _ = create_access_token(
         subject=str(user.id),
-        role=user.role.value,
+        role=user.role.code,
         company_id=str(user.company_id) if user.company_id else None,
         expires_minutes=settings.access_token_expire_minutes,
     )
@@ -539,7 +558,7 @@ async def change_password(
     settings = get_settings()
     access_token, expires_in, _ = create_access_token(
         subject=str(user.id),
-        role=user.role.value,
+        role=user.role.code,
         company_id=str(user.company_id) if user.company_id else None,
         expires_minutes=settings.access_token_expire_minutes,
     )

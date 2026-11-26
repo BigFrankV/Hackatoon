@@ -2,9 +2,9 @@
 
 ## 1. Estado actual
 
-Implementado: autenticación, sesiones, perfil, RBAC, administración de empresas y usuarios, aislamiento multiempresa y auditoría. El entorno local automatiza migraciones, bootstrap de superadmin y datos demo.
+Implementado: autenticación, sesiones, perfil, RBAC, administración de empresas y usuarios, aislamiento multiempresa y auditoría. También quedaron los permisos de producto, helpers de contexto tenant/auditoría, contratos tipados de integraciones y ciclo durable de jobs con leases y reintentos.
 
-Pendiente: bóveda documental, licitaciones, análisis Go/No-Go, chat contextual y preparación de ofertas siguen como placeholders; el worker no procesa trabajos reales y no existe despliegue CI/CD a producción.
+Pendiente: bóveda documental, licitaciones, análisis Go/No-Go, chat contextual y preparación de ofertas siguen como shells protegidos; faltan las APIs y handlers funcionales de sus fases. El worker procesa únicamente handlers registrados. No existe despliegue CI/CD a producción.
 
 Usa los comandos de pruebas de este documento para validar el estado actual. No se fija aquí un conteo de pruebas, porque cambia a medida que se añaden casos.
 
@@ -20,7 +20,7 @@ Ruta base: `backend/`
 | `Dockerfile` | Imagen backend | Python 3.12-slim, instala dependencias, expone `8000`, ejecuta Uvicorn |
 | `requirements.txt` | Dependencias runtime | FastAPI, Uvicorn, Pydantic v2, SQLAlchemy async, asyncpg, Alembic, psycopg, argon2-cffi, PyJWT, etc. |
 | `requirements-dev.txt` | Dependencias dev/test | pytest, pytest-asyncio, httpx, aiosqlite, ruff |
-| `pytest.ini` | Configuración pytest | `testpaths=app/tests`, `asyncio_mode=auto` |
+| `pytest.ini` | Configuración pytest | `testpaths=app/tests`, `asyncio_mode=auto` y marca `integration` |
 | `ruff.toml` | Lint | Ignora `B008` para `Depends(...)` |
 | `alembic.ini` | Config Alembic | `script_location=alembic`; URL tomada desde settings en `alembic/env.py` |
 
@@ -106,7 +106,7 @@ Prefijo: `/api/v1`
 
 | Ruta | Propósito | Detalle |
 |---|---|---|
-| `app/workers/main.py` | Worker placeholder | Loop de espera; no procesa jobs reales todavía |
+| `app/workers/main.py` | Worker durable | Reclama jobs registrados con leases y persiste estados/reintentos; faltan handlers de producto |
 | `alembic/env.py` | Integración Alembic | Usa settings + metadata de modelos |
 | `alembic/versions/0001_initial_identity.py` | Migración inicial | Crea `companies`, `users`, `refresh_tokens`, `audit_logs` y constraints |
 | `app/tests/conftest.py` | Fixtures de test | SQLite async en memoria, cliente ASGI, reset rate limiter |
@@ -237,7 +237,7 @@ Los accesos y la ubicación local de cada contraseña están descritos en [CREDE
 - pgAdmin: `http://localhost:5050`
 - PostgreSQL desde el host: `localhost:5432`
 
-pgAdmin inicia con el servidor `Licitaciones local` preconfigurado por el script (host `db`, puerto `5432`), sincronizado con `POSTGRES_DB` y `POSTGRES_USER`. Si solicita la contraseña de PostgreSQL, usa `POSTGRES_PASSWORD` del `.env` raíz. El worker sigue siendo un placeholder y solo se inicia explícitamente con el perfil `jobs`.
+pgAdmin inicia con el servidor `Licitaciones local` preconfigurado por el script (host `db`, puerto `5432`), sincronizado con `POSTGRES_DB` y `POSTGRES_USER`. Si solicita la contraseña de PostgreSQL, usa `POSTGRES_PASSWORD` del `.env` raíz. El worker se inicia explícitamente con el perfil `jobs`; sin handlers registrados deja los jobs en cola.
 
 Detener los servicios sin borrar los datos:
 
@@ -280,6 +280,7 @@ El Compose actual es de desarrollo: publica PostgreSQL y pgAdmin al host, usa re
 ```powershell
 cd frontend
 npm ci
+npm test
 npm run build
 ```
 
@@ -300,6 +301,6 @@ npm run build
 
 - El bootstrap de `super_admin` se ejecuta en desarrollo desde las variables del `.env` raíz y no reemplaza cuentas existentes.
 - `README.md` y esta guía describen el arranque Docker local; todavía no hay un despliegue CI/CD a nube.
-- El worker es placeholder; no hay procesamiento asíncrono real todavía.
+- El worker tiene persistencia, leases, reintentos y despacho; falta registrar handlers de extracción/análisis de fases posteriores.
 - Los módulos de bóveda, licitaciones, análisis, chat y ofertas están como placeholders en frontend.
 - El rate limit de login elimina claves inactivas y tiene un límite de estado, pero sigue siendo local al proceso y no distribuido.

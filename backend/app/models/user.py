@@ -9,30 +9,38 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Integer,
     String,
     Uuid,
     func,
 )
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.db.base import Base
-from app.models.enums import UserRole, UserStatus
+from app.models.enums import UserStatus
 
 if TYPE_CHECKING:
     from app.models.audit_log import AuditLog
     from app.models.company import Company
     from app.models.refresh_token import RefreshToken
+    from app.models.role import Role
 
 
 class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint(
-            "(role = 'super_admin' AND company_id IS NULL) OR "
-            "(role IN ('admin', 'user') AND company_id IS NOT NULL)",
-            name="ck_users_role_company_id",
+            "(role_scope = 'platform' AND company_id IS NULL) OR "
+            "(role_scope = 'company' AND company_id IS NOT NULL)",
+            name="ck_users_role_scope_company_id",
+        ),
+        ForeignKeyConstraint(
+            ["role_id", "role_scope"],
+            ["roles.id", "roles.scope"],
+            name="fk_users_role_id_scope",
+            ondelete="RESTRICT",
         ),
     )
 
@@ -45,20 +53,12 @@ class User(Base):
         nullable=True,
         index=True,
     )
+    role_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
+    role_scope: Mapped[str] = mapped_column(String(20), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
-    role: Mapped[UserRole] = mapped_column(
-        SAEnum(
-            UserRole,
-            name="user_role",
-            native_enum=False,
-            validate_strings=True,
-            values_callable=lambda enum_cls: [member.value for member in enum_cls],
-        ),
-        nullable=False,
-    )
     status: Mapped[UserStatus] = mapped_column(
         SAEnum(
             UserStatus,
@@ -83,6 +83,7 @@ class User(Base):
     deactivated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     company: Mapped[Company | None] = relationship(back_populates="users")
+    role: Mapped[Role] = relationship(back_populates="users", lazy="selectin")
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
@@ -90,3 +91,8 @@ class User(Base):
         back_populates="actor",
         foreign_keys="AuditLog.actor_user_id",
     )
+
+    @validates("role")
+    def _set_role_scope(self, key: str, role: Role) -> Role:
+        self.role_scope = role.scope
+        return role

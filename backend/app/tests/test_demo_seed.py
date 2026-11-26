@@ -28,8 +28,8 @@ async def test_demo_seed_creates_two_companies_and_four_users_idempotently(db_se
     assert {company.display_name for company in companies} == {"Demo Norte", "Demo Sur"}
     assert len(users) == 4
     for company in companies:
-        company_roles = {user.role for user in users if user.company_id == company.id}
-        assert company_roles == {UserRole.ADMIN, UserRole.USER}
+        company_roles = {user.role.code for user in users if user.company_id == company.id}
+        assert company_roles == {UserRole.ADMIN.value, UserRole.USER.value}
     assert all(user.must_change_password for user in users)
 
     admin = next(user for user in users if user.email == "admin.norte@hackatoon.dev")

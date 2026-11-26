@@ -16,9 +16,11 @@ from app.core.security import (
 )
 from app.models.company import Company
 from app.models.enums import CompanyStatus, UserRole, UserStatus
+from app.models.role import Role
 from app.models.user import User
 from app.services import auth_service
 from app.services.audit_service import record_audit_event
+from app.services.role_service import get_role
 
 
 def _utcnow() -> datetime:
@@ -73,7 +75,7 @@ def _user_to_admin_dict(user: User) -> dict:
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "role": user.role,
+        "role": user.role.code,
         "status": user.status,
         "company_id": user.company_id,
         "company": company_payload,
@@ -187,13 +189,14 @@ async def create_company(
     db.add(company)
     await db.flush()
 
+    admin_role = await get_role(db, UserRole.ADMIN)
     admin_user = User(
         company_id=company.id,
         email=admin_email,
         first_name=initial_admin["first_name"].strip(),
         last_name=initial_admin["last_name"].strip(),
         password_hash=hash_password(temporary_password),
-        role=UserRole.ADMIN,
+        role=admin_role,
         status=UserStatus.ACTIVE,
         must_change_password=True,
     )
@@ -225,7 +228,7 @@ async def create_company(
         ip_address=ip_address,
         user_agent=user_agent,
         metadata={
-            "role": admin_user.role.value,
+            "role": admin_user.role.code,
             "status": admin_user.status.value,
             "source": "company_initial_admin",
         },
@@ -247,7 +250,7 @@ async def create_company(
             "email": admin_user.email,
             "first_name": admin_user.first_name,
             "last_name": admin_user.last_name,
-            "role": admin_user.role.value,
+            "role": admin_user.role.code,
             "status": admin_user.status.value,
             "must_change_password": admin_user.must_change_password,
             "temporary_password": temporary_password,
@@ -483,12 +486,16 @@ async def list_company_users(
     search: str | None = None,
 ) -> dict:
     await _get_company_or_404(db, company_id)
-    stmt = select(User).options(selectinload(User.company)).where(User.company_id == company_id)
+    stmt = (
+        select(User)
+        .options(selectinload(User.company), selectinload(User.role))
+        .where(User.company_id == company_id)
+    )
     count_stmt = select(func.count()).select_from(User).where(User.company_id == company_id)
 
     if role is not None:
-        stmt = stmt.where(User.role == role)
-        count_stmt = count_stmt.where(User.role == role)
+        stmt = stmt.where(User.role.has(Role.code == role.value))
+        count_stmt = count_stmt.where(User.role.has(Role.code == role.value))
     if status is not None:
         stmt = stmt.where(User.status == status)
         count_stmt = count_stmt.where(User.status == status)
@@ -533,13 +540,14 @@ async def create_company_user(
     _validate_status_for_create(status)
 
     temporary_password = generate_temporary_password(20)
+    role_record = await get_role(db, enforced_role)
     user = User(
         company_id=company.id,
         email=email,
         first_name=payload["first_name"].strip(),
         last_name=payload["last_name"].strip(),
         password_hash=hash_password(temporary_password),
-        role=enforced_role,
+        role=role_record,
         status=status,
         must_change_password=True,
     )
@@ -555,7 +563,7 @@ async def create_company_user(
         company_id=company.id,
         ip_address=ip_address,
         user_agent=user_agent,
-        metadata={"role": user.role.value, "status": user.status.value},
+        metadata={"role": role_record.code, "status": user.status.value},
     )
 
     try:

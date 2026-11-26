@@ -13,8 +13,8 @@ export function ModulePlaceholderPage({ title, description }: ModulePlaceholderP
         <p className="mt-1 text-sm text-slate-600">{description}</p>
       </div>
       <EmptyState
-        title="Módulo no implementado en Tramo 4"
-        description="Esta sección es un marcador de posición de navegación. La implementación funcional está prevista para etapas posteriores."
+        title="Módulo en preparación"
+        description="La estructura y los permisos están listos; la funcionalidad de este módulo se implementará en las siguientes fases."
       />
     </div>
   );

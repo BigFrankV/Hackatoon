@@ -7,35 +7,14 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import PermissionDeniedError
+from app.core.redaction import redact_secrets
 from app.models.audit_log import AuditLog
-
-_SENSITIVE_KEYS = {
-    "password",
-    "token",
-    "refresh_token",
-    "access_token",
-    "secret",
-    "authorization",
-    "cookie",
-    "hashed_password",
-    "password_hash",
-}
+from app.models.user import User
 
 
 def _sanitize_metadata(value: Any) -> Any:
-    if isinstance(value, dict):
-        sanitized: dict[str, Any] = {}
-        for key, item in value.items():
-            if str(key).lower() in _SENSITIVE_KEYS:
-                sanitized[str(key)] = "[REDACTED]"
-            else:
-                sanitized[str(key)] = _sanitize_metadata(item)
-        return sanitized
-    if isinstance(value, list):
-        return [_sanitize_metadata(item) for item in value]
-    if isinstance(value, tuple):
-        return [_sanitize_metadata(item) for item in value]
-    return value
+    return redact_secrets(value)
 
 
 async def record_audit_event(
@@ -64,6 +43,34 @@ async def record_audit_event(
     db.add(log)
     await db.flush()
     return log
+
+
+async def record_company_audit_event(
+    db: AsyncSession,
+    *,
+    actor: User,
+    action: str,
+    entity_type: str,
+    entity_id: str | uuid.UUID | None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> AuditLog:
+    if actor.company_id is None:
+        raise PermissionDeniedError(
+            "Company context required", code="company_context_required"
+        )
+    return await record_audit_event(
+        db,
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        actor_user_id=actor.id,
+        company_id=actor.company_id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        metadata=metadata,
+    )
 
 
 def _audit_to_dict(log: AuditLog) -> dict:

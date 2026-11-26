@@ -180,11 +180,20 @@ backend\.venv\Scripts\python.exe -m pytest backend\app\tests -q
 backend\.venv\Scripts\ruff.exe check backend\app
 ```
 
+Las pruebas PostgreSQL de integración usan un esquema temporal dentro de una
+base de datos desechable. Configura `TEST_DATABASE_URL` con una URL
+`postgresql+asyncpg` de esa base y ejecuta:
+
+```powershell
+backend\.venv\Scripts\python.exe -m pytest backend\app\tests\test_postgres_integration.py -m integration -q
+```
+
 ### Frontend
 
 ```powershell
 Set-Location frontend
 npm ci
+npm test
 npm run build
 ```
 

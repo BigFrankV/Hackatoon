@@ -2,7 +2,12 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PlatformLayout } from "@/components/layout/PlatformLayout";
-import { PublicOnly, RequireAuth, RequireRoles } from "@/app/router/guards";
+import {
+  PublicOnly,
+  RequireAuth,
+  RequirePermission,
+  RequireRoles,
+} from "@/app/router/guards";
 import { ForbiddenPage } from "@/features/auth/ForbiddenPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { NotFoundPage } from "@/features/auth/NotFoundPage";
@@ -59,69 +64,81 @@ export function AppRouter() {
           <Route path="profile" element={<ProfilePage />} />
 
           <Route element={<RequireRoles roles={["admin", "user"]} />}>
-            <Route
-              path="vault"
-              element={
-                <Placeholder
-                  title="Repositorio"
-                  description="Gestión de documentos y evidencias de la empresa."
-                />
-              }
-            />
-            <Route
-              path="tenders"
-              element={
-                <Placeholder
-                  title="Licitaciones"
-                  description="Búsqueda y seguimiento de licitaciones."
-                />
-              }
-            />
-            <Route
-              path="tenders/new"
-              element={
-                <Placeholder
-                  title="Nueva licitación"
-                  description="Flujo de creación de licitaciones."
-                />
-              }
-            />
-            <Route
-              path="tenders/:tenderId"
-              element={
-                <Placeholder
-                  title="Detalle de la licitación"
-                  description="Detalle y gestión del ciclo de vida de la licitación."
-                />
-              }
-            />
-            <Route
-              path="analysis"
-              element={
-                <Placeholder
-                  title="Análisis"
-                  description="Análisis de licitaciones y documentos."
-                />
-              }
-            />
-            <Route
-              path="chat"
-              element={
-                <Placeholder
-                  title="Chat"
-                  description="Colaboración asistida por IA para las operaciones de licitación."
-                />
-              }
-            />
-            <Route
-              path="offers"
-              element={
-                <Placeholder
-                  title="Ofertas"
-                  description="Preparación y revisión de ofertas."
-                />
-              }
-            />
+            <Route element={<RequirePermission permission="documents.read" />}>
+              <Route
+                path="vault"
+                element={
+                  <Placeholder
+                    title="Repositorio"
+                    description="Gestión de documentos y evidencias de la empresa."
+                  />
+                }
+              />
+            </Route>
+            <Route element={<RequirePermission permission="tenders.read" />}>
+              <Route
+                path="tenders"
+                element={
+                  <Placeholder
+                    title="Licitaciones"
+                    description="Búsqueda y seguimiento de licitaciones."
+                  />
+                }
+              />
+              <Route
+                path="tenders/:tenderId"
+                element={
+                  <Placeholder
+                    title="Detalle de la licitación"
+                    description="Detalle y gestión del ciclo de vida de la licitación."
+                  />
+                }
+              />
+            </Route>
+            <Route element={<RequirePermission permission="tenders.manage" />}>
+              <Route
+                path="tenders/new"
+                element={
+                  <Placeholder
+                    title="Nueva licitación"
+                    description="Flujo de creación de licitaciones."
+                  />
+                }
+              />
+            </Route>
+            <Route element={<RequirePermission permission="analysis.read" />}>
+              <Route
+                path="analysis"
+                element={
+                  <Placeholder
+                    title="Análisis"
+                    description="Análisis de licitaciones y documentos."
+                  />
+                }
+              />
+            </Route>
+            <Route element={<RequirePermission permission="chat.use" />}>
+              <Route
+                path="chat"
+                element={
+                  <Placeholder
+                    title="Chat"
+                    description="Colaboración asistida por IA para las operaciones de licitación."
+                  />
+                }
+              />
+            </Route>
+            <Route element={<RequirePermission permission="offers.read" />}>
+              <Route
+                path="offers"
+                element={
+                  <Placeholder
+                    title="Ofertas"
+                    description="Preparación y revisión de ofertas."
+                  />
+                }
+              />
+            </Route>
           </Route>
 
           <Route element={<RequireRoles roles={["admin"]} />}>
