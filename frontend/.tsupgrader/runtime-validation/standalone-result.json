@@ -1,13 +1,13 @@
 {
-  "planHash": "8fb483b75afb0dc9cc7fe8e83155849b600bae39dae9e0b901c99d85a980cc92",
+  "planHash": "29fc8e14fbfc2b09b2ca9bf8548eaa96ff9d8b2f2b41f9afaa72fd13aa3995ef",
   "phase": "standalone",
-  "recordedAtUtc": "2026-11-26T18:00:24.7538707Z",
+  "recordedAtUtc": "2026-11-26T23:15:49.0083275Z",
   "retryCount": 0,
   "resetBaseline": false,
   "complete": true,
   "result": {
     "setupSucceeded": true,
-    "setupDurationMs": 53585,
+    "setupDurationMs": 0,
     "setupFailureOutput": null,
     "assertions": [
       {
@@ -19,8 +19,8 @@
         "skipped": false,
         "skippedReason": null,
         "exitCode": 0,
-        "outputSample": "\r\n\u003E licitaciones-ai-frontend@0.1.0 build\r\n\u003E tsc --noEmit \u0026\u0026 vite build\r\n\r\n\u001B[36mvite v5.4.21 \u001B[32mbuilding for production...\u001B[36m\u001B[39m\r\ntransforming...\r\n\u001B[32m\u2713\u001B[39m 81 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\n\u001B[2mdist/\u001B[22m\u001B[32mindex.html                 \u001B[39m\u001B[1m\u001B[2m  0.40 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  0.27 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[35massets/index-tmAIjbDG.css  \u001B[39m\u001B[1m\u001B[2m 19.69 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  4.37 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index-D_rneS1M.js   \u001B[39m\u001B[1m\u001B[2m264.83 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip: 73.48 kB\u001B[22m\r\n\u001B[32m\u2713 built in 5.80s\u001B[39m\r\n",
-        "durationMs": 17862
+        "outputSample": "\r\n\u003E licitaciones-ai-frontend@0.1.0 build\r\n\u003E tsc --noEmit \u0026\u0026 vite build\r\n\r\n\u001B[36mvite v5.4.21 \u001B[32mbuilding for production...\u001B[36m\u001B[39m\r\ntransforming...\r\n\u001B[32m\u2713\u001B[39m 83 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\n\u001B[2mdist/\u001B[22m\u001B[32mindex.html                 \u001B[39m\u001B[1m\u001B[2m  0.40 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  0.27 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[35massets/index-Eqb-Xghb.css  \u001B[39m\u001B[1m\u001B[2m 19.74 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  4.38 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index-G3779yzz.js   \u001B[39m\u001B[1m\u001B[2m269.61 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip: 74.74 kB\u001B[22m\r\n\u001B[32m\u2713 built in 6.07s\u001B[39m\r\n",
+        "durationMs": 32477
       },
       {
         "name": "tests-pass",
@@ -31,8 +31,8 @@
         "skipped": false,
         "skippedReason": null,
         "exitCode": 0,
-        "outputSample": "\r\n\u003E licitaciones-ai-frontend@0.1.0 test\r\n\u003E vitest run\r\n\r\n\r\n\u001B[1m\u001B[7m\u001B[36m RUN \u001B[39m\u001B[27m\u001B[22m \u001B[36mv2.1.9 \u001B[39m\u001B[90mC:/Users/frank/Desktop/Hackatoon/frontend\u001B[39m\r\n\r\n \u001B[32m\u2713\u001B[39m src/lib/permissions/index.test.ts \u001B[2m(\u001B[22m\u001B[2m2 tests\u001B[22m\u001B[2m)\u001B[22m\u001B[90m 7\u001B[2mms\u001B[22m\u001B[39m\r\n\r\n\u001B[2m Test Files \u001B[22m \u001B[1m\u001B[32m1 passed\u001B[39m\u001B[22m\u001B[90m (1)\u001B[39m\r\n\u001B[2m      Tests \u001B[22m \u001B[1m\u001B[32m2 passed\u001B[39m\u001B[22m\u001B[90m (2)\u001B[39m\r\n\u001B[2m   Start at \u001B[22m 15:00:16\r\n\u001B[2m   Duration \u001B[22m 3.20s\u001B[2m (transform 177ms, setup 0ms, collect 116ms, tests 7ms, environment 1ms, prepare 2.01s)\u001B[22m\r\n\r\n",
-        "durationMs": 6141,
+        "outputSample": "\r\n\u003E licitaciones-ai-frontend@0.1.0 test\r\n\u003E vitest run\r\n\r\n\r\n\u001B[1m\u001B[7m\u001B[36m RUN \u001B[39m\u001B[27m\u001B[22m \u001B[36mv2.1.9 \u001B[39m\u001B[90mC:/Users/frank/Desktop/Hackatoon/frontend\u001B[39m\r\n\r\n \u001B[32m\u2713\u001B[39m src/lib/permissions/index.test.ts \u001B[2m(\u001B[22m\u001B[2m2 tests\u001B[22m\u001B[2m)\u001B[22m\u001B[90m 9\u001B[2mms\u001B[22m\u001B[39m\r\n\r\n\u001B[2m Test Files \u001B[22m \u001B[1m\u001B[32m1 passed\u001B[39m\u001B[22m\u001B[90m (1)\u001B[39m\r\n\u001B[2m      Tests \u001B[22m \u001B[1m\u001B[32m2 passed\u001B[39m\u001B[22m\u001B[90m (2)\u001B[39m\r\n\u001B[2m   Start at \u001B[22m 20:15:39\r\n\u001B[2m   Duration \u001B[22m 4.55s\u001B[2m (transform 298ms, setup 0ms, collect 151ms, tests 9ms, environment 1ms, prepare 3.69s)\u001B[22m\r\n\r\n",
+        "durationMs": 7437,
         "testResults": {
           "testFramework": "vitest",
           "runnerDetectedFrom": "package_json",
@@ -44,7 +44,7 @@
         }
       },
       {
-        "name": "frontend-home-200",
+        "name": "tenders-route-200",
         "kind": "http-probe",
         "verificationMethod": "http-status",
         "passed": true,
@@ -52,22 +52,11 @@
         "skipped": false,
         "skippedReason": null,
         "exitCode": null,
-        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\n\u003Chtml lang=\u0022es\u0022\u003E\n  \u003Chead\u003E\n    \u003Cscript type=\u0022module\u0022\u003Eimport { injectIntoGlobalHook } from \u0022/@react-refresh\u0022;\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () =\u003E {};\nwindow.$RefreshSig$ = () =\u003E (type) =\u003E type;\u003C/script\u003E\n\n    \u003Cscript type=\u0022module\u0022 src=\u0022/@vite/client\u0022\u003E\u003C/script\u003E\n\n    \u003Cmeta charset=\u0022UTF-8\u0022 /\u003E\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1.0\u0022 /\u003E\n    \u003Ctitle\u003ELicitaciones AI\u003C/title\u003E\n  \u003C/head\u003E\n  \u003Cbody\u003E\n    \u003Cdiv id=\u0022root\u0022\u003E\u003C/div\u003E\n    \u003Cscript type=\u0022module\u0022 src=\u0022/src/main.tsx\u0022\u003E\u003C/script\u003E\n  \u003C/body\u003E\n\u003C/html\u003E\n\n--- server output ---\n\r\n\u003E licitaciones-ai-frontend@0.1.0 dev\r\n\u003E vite --host 127.0.0.1 --port 5179 --strictPort\r\n\r\n\r\n  \u001B[32m\u001B[1mVITE\u001B[22m v5.4.21\u001B[39m  \u001B[2mready in \u001B[0m\u001B[1m856\u001B[22m\u001B[2m\u001B[0m ms\u001B[22m\r\n\r\n  \u001B[32m\u279C\u001B[39m  \u001B[1mLocal\u001B[22m:   \u001B[36mhttp://127.0.0.1:\u001B[1m5179\u001B[22m/\u001B[39m\r\n",
-        "durationMs": 4604
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\n\u003Chtml lang=\u0022es\u0022\u003E\n  \u003Chead\u003E\n    \u003Cscript type=\u0022module\u0022\u003Eimport { injectIntoGlobalHook } from \u0022/@react-refresh\u0022;\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () =\u003E {};\nwindow.$RefreshSig$ = () =\u003E (type) =\u003E type;\u003C/script\u003E\n\n    \u003Cscript type=\u0022module\u0022 src=\u0022/@vite/client\u0022\u003E\u003C/script\u003E\n\n    \u003Cmeta charset=\u0022UTF-8\u0022 /\u003E\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1.0\u0022 /\u003E\n    \u003Ctitle\u003ELicitaciones AI\u003C/title\u003E\n  \u003C/head\u003E\n  \u003Cbody\u003E\n    \u003Cdiv id=\u0022root\u0022\u003E\u003C/div\u003E\n    \u003Cscript type=\u0022module\u0022 src=\u0022/src/main.tsx\u0022\u003E\u003C/script\u003E\n  \u003C/body\u003E\n\u003C/html\u003E\n\n--- server output ---\n\r\n\u003E licitaciones-ai-frontend@0.1.0 dev\r\n\u003E vite --host 127.0.0.1 --port 5179 --strictPort\r\n\r\n\r\n  \u001B[32m\u001B[1mVITE\u001B[22m v5.4.21\u001B[39m  \u001B[2mready in \u001B[0m\u001B[1m895\u001B[22m\u001B[2m\u001B[0m ms\u001B[22m\r\n\r\n  \u001B[32m\u279C\u001B[39m  \u001B[1mLocal\u001B[22m:   \u001B[36mhttp://127.0.0.1:\u001B[1m5179\u001B[22m/\u001B[39m\r\n",
+        "durationMs": 4458
       }
     ],
     "executions": [
-      {
-        "source": "setup[0]",
-        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
-        "args": [
-          "ci"
-        ],
-        "cwd": "C:\\Users\\frank\\Desktop\\Hackatoon\\frontend",
-        "env": {},
-        "prependPath": [],
-        "platform": "win32"
-      },
       {
         "source": "frontend-build",
         "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
@@ -92,7 +81,7 @@
         "platform": "win32"
       },
       {
-        "source": "frontend-home-200",
+        "source": "tenders-route-200",
         "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
         "args": [
           "run",

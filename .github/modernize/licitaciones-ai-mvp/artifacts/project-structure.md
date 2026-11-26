@@ -51,7 +51,7 @@ and optional pgAdmin, worker, and frontend services.
 | Authentication and sessions | Implemented; access tokens are held in memory and refresh tokens use an HTTP-only cookie. |
 | Company identity and user administration | Implemented with server-side role/permission checks and company-scoped services. |
 | Audit | Implemented for identity/company administration. |
-| Procurement opportunities and tracking | Frontend placeholder; no Mercado Público client or persistence entities. |
+| Procurement opportunities and tracking | Authenticated by-code detail lookup uses the Mercado Público client; persistent catalog and company tracking remain unimplemented. |
 | Document storage and processing | Integration package placeholders; no implemented ingestion pipeline. |
 | RAG and AI chat | No implemented provider, embeddings, retrieval, or chat persistence. |
 | Analysis and offer preparation | Frontend placeholders; no implemented domain services. |

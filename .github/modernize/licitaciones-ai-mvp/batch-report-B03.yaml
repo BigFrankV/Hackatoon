@@ -1,0 +1,97 @@
+batch_id: "B03"
+completed_tasks: ["T015", "T016", "T020"]
+blocked_tasks: []
+files_changed:
+  T015:
+    - file: "backend/app/tests/test_market_public_adapter.py"
+      change_type: "created"
+      description: "Test detail mapping, empty/malformed responses, timeouts, and unavailable source."
+  T016:
+    - file: "backend/app/integrations/procurement/mercado_publico.py"
+      change_type: "created"
+      description: "Implement secure official detail-by-code API adapter."
+    - file: "backend/app/services/tender_service.py"
+      change_type: "created"
+      description: "Load server-side ticket and translate upstream failures."
+  T020:
+    - file: "backend/app/api/v1/tenders.py"
+      change_type: "created"
+      description: "Expose authenticated tender detail lookup."
+    - file: "frontend/src/features/tenders/TendersPage.tsx"
+      change_type: "created"
+      description: "Replace placeholder with code lookup and tender detail."
+    - file: "frontend/src/app/router/AppRouter.tsx"
+      change_type: "modified"
+      description: "Wire the lookup page to the existing protected route."
+upstream_artifacts_consumed:
+  T015:
+    - artifact: ".github/modernize/licitaciones-ai-mvp/research/mercado-publico-api.md"
+      used_for: "Official JSON endpoint and verified detail-by-code response."
+  T016:
+    - artifact: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-007"
+      used_for: "Keep provider credentials server-side."
+    - artifact: ".github/modernize/licitaciones-ai-mvp/research/mercado-publico-api.md"
+      used_for: "Official query parameter and observed response structure."
+  T020:
+    - artifact: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-002"
+      used_for: "Require server-side tender-read permission."
+    - artifact: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-008"
+      used_for: "Search and display public opportunities from the official source."
+    - artifact: ".github/modernize/licitaciones-ai-mvp/spec.md#REQ-009"
+      used_for: "Show identifying information and an official link."
+evidence_mapping:
+  T015:
+    - upstream: "research/mercado-publico-api.md#Live Detail Lookup Verification"
+      output: "backend/app/tests/test_market_public_adapter.py"
+      evidence: "Fixture tests pass for mapping, empty/malformed data, timeout, and source outage."
+  T016:
+    - upstream: "spec.md#REQ-007"
+      output: "backend/app/integrations/procurement/mercado_publico.py"
+      evidence: "The configured ticket is sent only in the backend API request; failures use sanitized codes."
+  T020:
+    - upstream: "spec.md#REQ-002, REQ-008, REQ-009"
+      output: "backend/app/api/v1/tenders.py and frontend/src/features/tenders/TendersPage.tsx"
+      evidence: "Authenticated live lookup returned HTTP 200 with tender, buyer, status, item, and official link fields."
+traceability:
+  - requirement: "REQ-007, REQ-008, REQ-009"
+    plan_item: "3.1"
+    task: "T015"
+    files: ["backend/app/tests/test_market_public_adapter.py"]
+    status: "completed"
+  - requirement: "REQ-007, REQ-008, REQ-009"
+    plan_item: "3.1"
+    task: "T016"
+    files:
+      - "backend/app/integrations/procurement/mercado_publico.py"
+      - "backend/app/services/tender_service.py"
+    status: "completed"
+  - requirement: "REQ-002, REQ-008, REQ-009"
+    plan_item: "3.3"
+    task: "T020"
+    files:
+      - "backend/app/api/v1/tenders.py"
+      - "frontend/src/features/tenders/TendersPage.tsx"
+    status: "completed"
+protocol_violation: false
+errors: []
+warnings:
+  - "The first release is by-code detail lookup only; persistence, company follow, and document retrieval remain pending."
+  - "Rate limits, retention terms, list-query behavior, and attachment behavior remain unverified."
+test_results:
+  backend:
+    command: "backend/.venv/Scripts/python.exe -m pytest backend/app/tests -q"
+    passed: 89
+    failed: 0
+    skipped: 1
+    failures: []
+  backend_lint:
+    command: "backend/.venv/Scripts/ruff.exe check backend/app"
+    result: "passed"
+  frontend_build:
+    command: "cd frontend && npm run build"
+    result: "passed"
+  frontend_tests:
+    command: "cd frontend && npm test"
+    passed: 2
+    failed: 0
+    skipped: 0

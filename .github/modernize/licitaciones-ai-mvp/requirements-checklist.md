@@ -23,5 +23,5 @@
 - [x] User approved this specification as the planning baseline; implementation still requires the listed technical gates.
 - [x] User accepted the logical data model as the planning baseline.
 - [x] Review physical fields, constraints, delete rules, and role backfill before database migrations.
-- [ ] Confirm the current API availability notice, ticket conditions, limits, and document access before live Mercado Público integration/retrieval.
+- [ ] Before expanding beyond detail-by-code, confirm API availability over time, ticket conditions, rate limits, retention terms, and document access.
 - [x] Focused architecture context is documented; per-endpoint/per-page behavior inventory is intentionally out of scope.

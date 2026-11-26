@@ -16,7 +16,7 @@
   <img alt="Docker Compose" src="https://img.shields.io/badge/Dev-Docker%20Compose-2496ED?logo=docker&logoColor=white" />
 </p>
 
-> **Estado del proyecto:** identidad, autenticación, RBAC, empresas y auditoría están implementados. El MVP local ya incluye carga privada de PDF/DOCX, extracción, embeddings con Ollama y chat con citas; la integración en vivo con Mercado Público, análisis Go/No-Go, seguimiento avanzado y ofertas siguen pendientes. No hay despliegue CI/CD a producción.
+> **Estado del proyecto:** identidad, autenticación, RBAC, empresas y auditoría están implementados. El MVP local incluye carga privada de PDF/DOCX, extracción, embeddings con Ollama y chat con citas. La primera consulta en vivo de una licitación por código ya está conectada a Mercado Público; el seguimiento persistente, descarga de bases, análisis Go/No-Go y ofertas siguen pendientes. No hay despliegue CI/CD a producción.
 
 ## ✨ Qué incluye
 
@@ -156,6 +156,8 @@ flowchart TD
 
 Las contraseñas reales viven únicamente en el `.env` local. El superadmin y las cuentas demo solicitan cambio de contraseña al primer inicio. Las cuentas demo tienen correos y roles estables entre clones, pero cada computadora genera sus propias contraseñas.
 
+Para habilitar la consulta por código, configura `PROCUREMENT_API_TICKET` en `backend/.env`. El ticket se usa solo desde el backend; no lo compartas ni lo pongas en el frontend. La primera versión consulta y muestra la ficha, pero todavía no guarda seguimiento ni descarga documentos.
+
 En pgAdmin aparece el servidor **Licitaciones local**. Si pide la contraseña de la base al conectarse, usa `POSTGRES_PASSWORD`. La conexión usa `db:5432` dentro de Compose; desde Windows PostgreSQL se publica como `localhost:5432`.
 
 Consulta la [guía de credenciales locales](./CREDENCIALES_DESARROLLO.md) para los detalles de persistencia y cambio de contraseñas.
@@ -176,7 +178,7 @@ Consulta la [guía de credenciales locales](./CREDENCIALES_DESARROLLO.md) para l
 Desde la raíz del repositorio:
 
 ```powershell
-docker compose --profile dev --profile frontend down
+docker compose --profile dev --profile jobs --profile frontend down
 ```
 
 Esto detiene los servicios y conserva los volúmenes de PostgreSQL y pgAdmin. No añadas `--volumes` salvo que quieras borrar la base y los datos guardados de pgAdmin. Un cambio de contraseña en `.env` no actualiza automáticamente una contraseña ya inicializada dentro de un volumen existente.

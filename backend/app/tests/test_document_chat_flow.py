@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import AppError, NotFoundError
 from app.core.security import hash_password
 from app.integrations.contracts import AIResponse
 from app.integrations.storage.local import LocalPrivateDocumentStorage
@@ -172,6 +172,16 @@ async def test_upload_worker_and_chat_keep_retrieval_company_scoped(
     assert [item["id"] for item in own_docs] == [uploads[0]["id"]]
     with pytest.raises(NotFoundError):
         await foreign_download
+    with pytest.raises(AppError) as upload_error:
+        await document_service.upload_company_document(
+            db_session,
+            actor=company_one,
+            filename="invalid.pdf",
+            content=b"not a PDF",
+            media_type="application/pdf",
+            idempotency_key="invalid-upload",
+        )
+    assert upload_error.value.code == "invalid_document_format"
 
     answer = await chat_service.send_chat_message(
         db_session,
@@ -182,6 +192,13 @@ async def test_upload_worker_and_chat_keep_retrieval_company_scoped(
     assert answer["grounded"] is True
     assert answer["citations"][0]["document_id"] == uploads[0]["id"]
     assert "treinta días" not in answer["citations"][0]["excerpt"]
+    with pytest.raises(NotFoundError):
+        await chat_service.send_chat_message(
+            db_session,
+            actor=company_two,
+            content="Muestra la conversación de otra empresa",
+            conversation_id=answer["conversation_id"],
+        )
 
     user_message_with_no_docs = await chat_service.send_chat_message(
         db_session,

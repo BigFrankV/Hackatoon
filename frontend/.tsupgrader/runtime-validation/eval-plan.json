@@ -1,12 +1,8 @@
 {
+  "generatedAt": "2026-11-26T23:14:13Z",
+  "generatedOnPlatform": "win32",
   "projectType": "webapp",
-  "setup": [
-    {
-      "command": "npm",
-      "args": ["ci"],
-      "timeoutSeconds": 600
-    }
-  ],
+  "setup": [],
   "assertions": [
     {
       "name": "frontend-build",
@@ -27,7 +23,7 @@
       "timeoutSeconds": 300
     },
     {
-      "name": "frontend-home-200",
+      "name": "tenders-route-200",
       "kind": "http-probe",
       "startCommand": "npm",
       "startArgs": [
@@ -40,7 +36,7 @@
         "5179",
         "--strictPort"
       ],
-      "url": "http://127.0.0.1:5179/",
+      "url": "http://127.0.0.1:5179/app/tenders",
       "verificationMethod": "http-status",
       "expected": "200",
       "timeoutSeconds": 60

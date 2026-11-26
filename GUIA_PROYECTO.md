@@ -2,9 +2,9 @@
 
 ## 1. Estado actual
 
-Implementado: autenticación, sesiones, perfil, RBAC, administración de empresas y usuarios, aislamiento multiempresa y auditoría. También hay carga privada PDF/DOCX, extracción por página, chunking, embeddings BGE-M3 en pgvector, estado/reintentos de procesamiento y chat local con Ollama y citas filtradas por empresa.
+Implementado: autenticación, sesiones, perfil, RBAC, administración de empresas y usuarios, aislamiento multiempresa y auditoría. También hay carga privada PDF/DOCX, extracción por página, chunking, embeddings BGE-M3 en pgvector y chat local con Ollama y citas filtradas por empresa. La pantalla Licitaciones consulta fichas públicas por código a Mercado Público; el ticket queda en el backend.
 
-Pendiente: integración en vivo con Mercado Público, selección/políticas de modelos por empresa, análisis Go/No-Go, seguimiento avanzado y preparación de ofertas. No existe despliegue CI/CD a producción.
+Pendiente: seguimiento persistente de licitaciones, descarga de sus bases, selección/políticas de modelos por empresa, análisis Go/No-Go y preparación de ofertas. No existe despliegue CI/CD a producción.
 
 Usa los comandos de pruebas de este documento para validar el estado actual. No se fija aquí un conteo de pruebas, porque cambia a medida que se añaden casos.
 

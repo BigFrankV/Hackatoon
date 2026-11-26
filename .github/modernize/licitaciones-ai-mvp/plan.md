@@ -346,7 +346,7 @@ counts.
 ### Phase 1: Setup and Approval Gates
 
 - [x] T001 [Plan:1.1] Finalize field constraints, ownership, retention, and role backfill for the approved planning baseline in `../assessment/engines/facts/data-architecture.md`; preserve current permission behavior.
-- [ ] T002 [Plan:1.2] Validate official Mercado Público availability, list/detail responses, terms, limits, and document links when a ticket is available; until then record the live-integration blocker in `research/mercado-publico-api.md` without storing the ticket, and proceed with independent tasks.
+- [ ] T002 [Plan:1.2] Extend official Mercado Público validation beyond the verified detail-by-code lookup: confirm list responses, terms, rate limits, and document links in `research/mercado-publico-api.md` without storing the ticket.
 - [x] T003 [Plan:1.2] Verify `qwen3:1.7b` and backend-to-Ollama connectivity, select `bge-m3` at 1024 dimensions, and record local private storage in `research.md`; hosted APIs remain deferred.
 - [x] T004 [Plan:1.3] Add PostgreSQL integration-test configuration and Playwright scripts/configuration in `backend/app/tests/conftest.py`, `frontend/package.json`, and `frontend/playwright.config.ts`.
 
@@ -365,12 +365,12 @@ counts.
 
 ### Phase 3: User Story 1 — Find and Follow an Opportunity
 
-- [ ] T015 [Plan:3.1] Write source-adapter fixture tests for documented searches, detail-by-code, malformed responses, timeout, and unavailable service in `backend/app/tests/test_market_public_adapter.py`.
-- [ ] T016 [Plan:3.1] Implement the verified Mercado Público client, ticket redaction, and source mapping in `backend/app/integrations/procurement/mercado_publico.py`.
+- [x] T015 [Plan:3.1] Write source-adapter fixture tests for detail-by-code, empty/malformed responses, timeout, and unavailable service in `backend/app/tests/test_market_public_adapter.py`.
+- [x] T016 [Plan:3.1] Implement the verified Mercado Público detail client, server-side ticket handling, and source mapping in `backend/app/integrations/procurement/mercado_publico.py`.
 - [ ] T017 [Plan:3.2] Write catalogue deduplication and same-/cross-company tracking tests in `backend/app/tests/test_tender_catalog.py`.
 - [ ] T018 [Plan:3.2] Implement shared opportunity persistence and company-scoped tracking operations in `backend/app/models/`, `backend/app/repositories/`, and `backend/app/services/tender_service.py`.
 - [ ] T019 [Plan:3.3] Write API authorization, search, follow, source-outage, and duplicate-follow tests in `backend/app/tests/test_tender_api.py`.
-- [ ] T020 [Plan:3.3] Implement tender search/detail/follow APIs and pages in `backend/app/api/v1/tenders.py` and `frontend/src/features/tenders/`.
+- [x] T020 [Plan:3.3] Implement the authenticated detail-by-code API and lookup page; catalogue search and company follow are separate pending tasks.
 
 ### Phase 4: User Story 2 — Configure and Choose an Ollama Model
 

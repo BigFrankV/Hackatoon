@@ -20,24 +20,37 @@
   awarded `8`, revoked `18`, and suspended `19`.
 - The official page displayed a banner image named
   `banner-indisponibilidad-api` when checked. Its explanatory text was not
-  available in the page text, so current service availability and the duration
-  of any interruption must be confirmed before relying on the API.
+  available in the page text. A project-ticket lookup by tender code was
+  separately verified with HTTP 200 on 2026-11-26; this confirms that single
+  detail query, not sustained availability.
 
 ## Not Verified Yet
 
-- Whether the service and ticket issuance are currently available to this
-  project.
-- Exact documented response schemas, pagination/volume behavior, rate limits,
+- Exact list response schemas, pagination/volume behavior, rate limits,
   timeout expectations, and terms for caching/retaining source data.
 - Whether tender attachments can be discovered and downloaded through the API,
   through the tender website, or only by user-provided files.
-- The current validity/rotation rules for tickets.
+- The current validity/rotation rules for tickets and sustained service
+  availability.
 - Required handling of archived tender types and status transitions.
 
 The official page links a tender API guide and a tender-documentation page, but
 the guide's PDF content and attachment availability were not machine-verified
 in this review. Do not assume that source document URLs are returned or
 downloadable.
+
+## Live Detail Lookup Verification
+
+- On 2026-11-26, a configured project ticket successfully queried the official
+  JSON endpoint by tender code and returned HTTP 200 with one detail record.
+- The verified request uses the `codigo` and server-side `ticket` query
+  parameters. The ticket is not stored in this artifact or returned to clients.
+- The detail response uses a root `Listado` array. The implementation maps the
+  code, name, description, status, buyer, dates, estimated amount, currency, and
+  up to 25 item summaries; it links to the official tender detail page.
+- This verifies detail-by-code only. Rate limits, retention terms, and document
+  discovery/download behavior remain unverified and are outside the first
+  lookup-only delivery.
 
 ## Planning Implications
 
@@ -48,9 +61,9 @@ downloadable.
   upstream URL.
 - Keep manual document upload as an independent fallback, as already confirmed
   in the feature specification.
-- Before implementation, obtain a valid project ticket and test representative
-  list-by-date/state and detail-by-code responses, errors, availability, and
-  attachment behavior.
+- Before expanding beyond detail-by-code, verify list-by-date/state responses,
+  ticket conditions, rate limits, data-retention terms, and attachment
+  behavior.
 
 ## Sources
 

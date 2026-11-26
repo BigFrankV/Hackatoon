@@ -204,7 +204,7 @@ As an authorized user, I want to assemble a checklist and select approved compan
 - Preserve current login/session behavior and user/company identity. The user selected relational role/permission tables; the migration must explicitly backfill current role values and preserve existing authorization semantics.
 - The data architecture and its physical-schema defaults are approved before product migrations. The vector migration uses the selected embedding model and dimension.
 - Deletions in the MVP are logical: retain audit records, versions, and historical analysis evidence, with no automatic hard purge. Define physical retention/purge before production.
-- No Mercado Público ticket is currently available for live verification; the user must obtain one before implementation of the live source integration.
+- A project ticket is configured and detail-by-code has been verified live; list search, rate limits, terms, and document retrieval remain validation gates before expanding the source integration.
 
 ## Success Criteria
 

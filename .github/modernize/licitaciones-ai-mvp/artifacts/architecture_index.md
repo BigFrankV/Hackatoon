@@ -74,7 +74,8 @@ Do not treat this list as a final target module count.
 ## Required Completion Evidence
 
 Before database migrations, the plan must identify the final schema and role
-backfill. Before live Mercado Público integration or retrieval, verify API
+backfill. Detail-by-code has been verified against the live Mercado Público API.
+Before expanding to list search, tracking, or document retrieval, verify API
 availability and the document contract; that ticket/API gate does not block
 unrelated implementation. The plan must also identify the
 authentication/company integration points, worker/job behavior, and

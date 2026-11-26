@@ -29,6 +29,7 @@ import { PlatformUserCreatePage } from "@/features/platform/PlatformUserCreatePa
 import { PlatformUserDetailPage } from "@/features/platform/PlatformUserDetailPage";
 import { PlatformUsersPage } from "@/features/platform/PlatformUsersPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
+import { TendersPage } from "@/features/tenders/TendersPage";
 
 function Placeholder({ title, description }: { title: string; description: string }) {
   return <ModulePlaceholderPage title={title} description={description} />;
@@ -75,12 +76,7 @@ export function AppRouter() {
             <Route element={<RequirePermission permission="tenders.read" />}>
               <Route
                 path="tenders"
-                element={
-                  <Placeholder
-                    title="Licitaciones"
-                    description="Búsqueda y seguimiento de licitaciones."
-                  />
-                }
+                element={<TendersPage />}
               />
               <Route
                 path="tenders/:tenderId"

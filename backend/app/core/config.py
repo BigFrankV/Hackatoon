@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     ollama_embedding_model: str = "bge-m3"
     embedding_dimension: int = Field(default=1024, gt=0)
     procurement_api_ticket: SecretStr | None = None
-    ai_provider_timeout_seconds: float = Field(default=30.0, gt=0, le=600)
+    ai_provider_timeout_seconds: float = Field(default=180.0, gt=0, le=600)
     private_storage_root: Path = Path("storage/private")
     max_document_upload_bytes: int = Field(default=25 * 1024 * 1024, gt=0)
     rag_min_similarity: float = Field(default=0.35, ge=0, le=1)

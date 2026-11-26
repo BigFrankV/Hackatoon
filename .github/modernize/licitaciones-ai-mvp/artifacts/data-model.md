@@ -83,6 +83,6 @@ development embedding model is BGE-M3; chat uses `qwen3:1.7b`. The
 `document_processing_jobs` lifecycle includes lease recovery and idempotent
 retries. Current application code maps document, extraction, chunk, embedding,
 conversation, message, and citation records. Tenant-scoped document intake,
-processing, retrieval, and chat APIs are being wired to those records; the
-live Mercado Público adapter, analysis workflows, and offers remain future
-work.
+processing, retrieval, and chat APIs are being wired to those records. The
+live Mercado Público detail-by-code lookup is implemented without persistence;
+catalog tracking, analysis workflows, and offers remain future work.
