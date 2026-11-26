@@ -9,5 +9,6 @@ __pycache__
 !.env.example
 .git
 .gitignore
+storage
 tests/__pycache__
 app/tests/__pycache__

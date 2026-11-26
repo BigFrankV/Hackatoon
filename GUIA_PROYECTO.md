@@ -2,9 +2,9 @@
 
 ## 1. Estado actual
 
-Implementado: autenticación, sesiones, perfil, RBAC, administración de empresas y usuarios, aislamiento multiempresa y auditoría. También quedaron los permisos de producto, helpers de contexto tenant/auditoría, contratos tipados de integraciones y ciclo durable de jobs con leases y reintentos.
+Implementado: autenticación, sesiones, perfil, RBAC, administración de empresas y usuarios, aislamiento multiempresa y auditoría. También hay carga privada PDF/DOCX, extracción por página, chunking, embeddings BGE-M3 en pgvector, estado/reintentos de procesamiento y chat local con Ollama y citas filtradas por empresa.
 
-Pendiente: bóveda documental, licitaciones, análisis Go/No-Go, chat contextual y preparación de ofertas siguen como shells protegidos; faltan las APIs y handlers funcionales de sus fases. El worker procesa únicamente handlers registrados. No existe despliegue CI/CD a producción.
+Pendiente: integración en vivo con Mercado Público, selección/políticas de modelos por empresa, análisis Go/No-Go, seguimiento avanzado y preparación de ofertas. No existe despliegue CI/CD a producción.
 
 Usa los comandos de pruebas de este documento para validar el estado actual. No se fija aquí un conteo de pruebas, porque cambia a medida que se añaden casos.
 
@@ -18,7 +18,7 @@ Ruta base: `backend/`
 |---|---|---|
 | `.env.example` | Plantilla de variables de entorno | `APP_NAME`, `ENVIRONMENT`, `API_V1_PREFIX`, `DEBUG`, `LOG_LEVEL`, `SECRET_KEY`, `JWT_ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`, `REFRESH_COOKIE_*`, `LOGIN_RATE_LIMIT_*`, `LOGIN_LOCKOUT_*`, `DATABASE_URL`, `DATABASE_ECHO`, `CORS_ORIGINS` |
 | `Dockerfile` | Imagen backend | Python 3.12-slim, instala dependencias, expone `8000`, ejecuta Uvicorn |
-| `requirements.txt` | Dependencias runtime | FastAPI, Uvicorn, Pydantic v2, SQLAlchemy async, asyncpg, Alembic, psycopg, argon2-cffi, PyJWT, etc. |
+| `requirements.txt` | Dependencias runtime | FastAPI, Uvicorn, SQLAlchemy async, Alembic, Ollama HTTP client, PyMuPDF, python-docx, pgvector, etc. |
 | `requirements-dev.txt` | Dependencias dev/test | pytest, pytest-asyncio, httpx, aiosqlite, ruff |
 | `pytest.ini` | Configuración pytest | `testpaths=app/tests`, `asyncio_mode=auto` y marca `integration` |
 | `ruff.toml` | Lint | Ignora `B008` para `Depends(...)` |
@@ -29,7 +29,7 @@ Ruta base: `backend/`
 | Archivo | Propósito | Funciones/endpoints clave |
 |---|---|---|
 | `app/main.py` | Crea app FastAPI | Configura OpenAPI/docs, CORS, handlers de error (`app_error_handler`, `validation_error_handler`, `http_exception_handler`), incluye router v1 |
-| `app/api/v1/router.py` | Agrega routers v1 | Incluye `health`, `auth`, `companies`, `company`, `users`, `audit` |
+| `app/api/v1/router.py` | Agrega routers v1 | Incluye `health`, `auth`, `companies`, `company`, `users`, `audit`, `documents`, `chat` |
 | `app/api/v1/health.py` | Healthcheck | `GET /api/v1/health` → `{"status":"ok"}` |
 
 ### 2.3 Core
@@ -60,6 +60,7 @@ Ruta base: `backend/`
 | `app/models/user.py` | Usuario | Tabla `users`; constraint `ck_users_role_company_id`; email único; password hash; estado; lockout; relaciones |
 | `app/models/refresh_token.py` | Refresh tokens | Tabla `refresh_tokens`; guarda solo `token_hash`; family/revocación/reuso/reemplazo |
 | `app/models/audit_log.py` | Auditoría | Tabla `audit_logs`; actor/company/entity/action; `event_metadata` mapeado a columna `metadata` |
+| `app/models/knowledge.py` | Documentos y chat | Catálogo Ollama, documentos/versiones, extracciones/chunks/embeddings, conversaciones/mensajes/citas |
 | `app/models/__init__.py` | Exportación | Exporta modelos y `Base` |
 
 ### 2.6 Schemas (Pydantic)
@@ -71,6 +72,7 @@ Ruta base: `backend/`
 | `app/schemas/company.py` | Empresas | Create/update/status/profile/response; creación incluye admin inicial y password temporal |
 | `app/schemas/user.py` | Usuarios admin | `CompanyUserCreateRequest`, `GlobalUserCreateRequest`, `GlobalUserUpdateRequest`, `UserResetPasswordResponse`, `UserCreatedResponse` |
 | `app/schemas/audit.py` | Auditoría | `AuditLogResponse`, `AuditLogListResponse`, `AuditLogFilters` |
+| `app/schemas/documents.py`, `app/schemas/chat.py` | Repositorio y chat | Contratos de carga/listado/reintento y de mensajes/citas |
 
 ### 2.7 Servicios (lógica de negocio)
 
@@ -80,6 +82,8 @@ Ruta base: `backend/`
 | `app/services/auth_service.py` | Auth/sesión | `login`, `refresh_tokens`, `logout`, `update_profile`, `change_password`, `list_sessions`, `revoke_session`, `revoke_user_sessions`, `revoke_company_sessions` |
 | `app/services/user_service.py` | Admin usuarios | `list_users_global`, `create_user_global`, `get_user_global`, `update_user_global`, `set_user_status_global`, `reset_user_password_global`, `revoke_user_sessions_global`, y versiones `*_company_*_scoped` |
 | `app/services/company_service.py` | Admin empresas | `list_companies`, `create_company`, `get_company`, `update_company`, `suspend_company`, `activate_company`, `get_company_profile`, `update_company_profile`, `list_company_users`, `create_company_user` |
+| `app/services/document_service.py` | Documentos | Carga privada, versiones, estado, descarga autenticada, reintentos y pipeline de extracción/embeddings |
+| `app/services/chat_service.py` | Chat/RAG | Contexto de empresa, búsqueda pgvector, persistencia de mensajes y citas |
 
 ### 2.8 Dependencias API
 
@@ -101,12 +105,14 @@ Prefijo: `/api/v1`
 | `app/api/v1/company.py` | Admin de empresa | `GET/PATCH /company/profile`, `GET/POST /company/users`, `GET/PATCH /company/users/{user_id}`, `activate/deactivate/reset-password/revoke-sessions`, `GET /company/audit-logs` |
 | `app/api/v1/users.py` | Super admin | `GET/POST /users`, `GET/PATCH /users/{user_id}`, `activate/deactivate/reset-password/revoke-sessions` |
 | `app/api/v1/audit.py` | Super admin | `GET /audit-logs` |
+| `app/api/v1/documents.py` | Empresa autenticada | `GET/POST /documents`, `GET /documents/{id}/download`, `POST /documents/{id}/retry` |
+| `app/api/v1/chat.py` | Empresa autenticada | `POST /chat/messages` |
 
 ### 2.10 Workers, Alembic y tests
 
 | Ruta | Propósito | Detalle |
 |---|---|---|
-| `app/workers/main.py` | Worker durable | Reclama jobs registrados con leases y persiste estados/reintentos; faltan handlers de producto |
+| `app/workers/main.py` | Worker durable | Reclama jobs con leases; procesa extracción, chunking y embeddings de documentos |
 | `alembic/env.py` | Integración Alembic | Usa settings + metadata de modelos |
 | `alembic/versions/0001_initial_identity.py` | Migración inicial | Crea `companies`, `users`, `refresh_tokens`, `audit_logs` y constraints |
 | `app/tests/conftest.py` | Fixtures de test | SQLite async en memoria, cliente ASGI, reset rate limiter |
@@ -158,6 +164,7 @@ Ruta base: `frontend/`
 | `src/lib/api/company.ts` | API empresa/admin | Wrappers `/company...` |
 | `src/lib/api/users.ts` | API usuarios globales | Wrappers `/users...` |
 | `src/lib/api/audit.ts` | API auditoría | Wrappers `/audit-logs`, `/company/audit-logs` |
+| `src/lib/api/documents.ts`, `src/lib/api/chat.ts` | API de producto | Wrappers de carga/listado/reintento y envío de mensajes con citas |
 
 ### 3.4 Tipos, layout y UI
 
@@ -181,25 +188,22 @@ Ruta base: `frontend/`
 | `src/features/profile/ProfilePage.tsx` | Perfil y cambio de contraseña |
 | `src/features/platform/*` | Dashboard plataforma, empresas, usuarios globales, auditoría global |
 | `src/features/company/*` | Config empresa, usuarios empresa, auditoría empresa |
+| `src/features/documents/VaultPage.tsx` | Bóveda | Carga PDF/DOCX, estado del worker y reintentos |
+| `src/features/chat/ChatPage.tsx` | Chat local | Conversación con aviso sin fuentes y citas documentales |
 | `src/features/placeholders/ModulePlaceholderPage.tsx` | Placeholders para módulos futuros |
 
 ### 3.6 Rutas actuales
 
 - **Públicas**: `/login`, `/forbidden`, `*`
 - **Super admin**: `/platform`, `/platform/companies`, `/platform/companies/new`, `/platform/companies/:companyId`, `/platform/users`, `/platform/users/new`, `/platform/users/:userId`, `/platform/audit`, `/app/profile`
-- **Admin**: `/app`, `/app/profile`, `/app/settings/company`, `/app/settings/users`, `/app/settings/users/new`, `/app/settings/users/:userId`, `/app/settings/audit`, placeholders operativos
-- **User**: `/app`, `/app/profile`, placeholders operativos (`/app/vault`, `/app/tenders`, `/app/analysis`, `/app/chat`, `/app/offers`)
+- **Admin**: `/app`, `/app/profile`, `/app/settings/company`, `/app/settings/users`, `/app/settings/users/new`, `/app/settings/users/:userId`, `/app/settings/audit`, `/app/vault`, `/app/chat`
+- **User**: `/app`, `/app/profile`, `/app/vault`, `/app/chat`; licitaciones, análisis y ofertas aún son placeholders
 
 ## 4. Base de datos y migraciones
 
 ### ¿La migración está lista?
 
-Sí. La migración inicial está lista en:
-- `backend/alembic.ini`
-- `backend/alembic/env.py`
-- `backend/alembic/versions/0001_initial_identity.py`
-
-Crea las tablas: `companies`, `users`, `refresh_tokens`, `audit_logs`. No inserta empresas demo.
+Sí. Las migraciones Alembic `0001` a `0007` se ejecutan mediante `alembic upgrade head`. Incluyen identidad/RBAC, dominios de producto, jobs y `document_embeddings` con pgvector de 1024 dimensiones, índice HNSW y modelos locales Qwen3/BGE-M3. No insertan empresas demo.
 
 ### Punto importante
 
@@ -237,12 +241,12 @@ Los accesos y la ubicación local de cada contraseña están descritos en [CREDE
 - pgAdmin: `http://localhost:5050`
 - PostgreSQL desde el host: `localhost:5432`
 
-pgAdmin inicia con el servidor `Licitaciones local` preconfigurado por el script (host `db`, puerto `5432`), sincronizado con `POSTGRES_DB` y `POSTGRES_USER`. Si solicita la contraseña de PostgreSQL, usa `POSTGRES_PASSWORD` del `.env` raíz. El worker se inicia explícitamente con el perfil `jobs`; sin handlers registrados deja los jobs en cola.
+pgAdmin inicia con el servidor `Licitaciones local` preconfigurado por el script (host `db`, puerto `5432`), sincronizado con `POSTGRES_DB` y `POSTGRES_USER`. Si solicita la contraseña de PostgreSQL, usa `POSTGRES_PASSWORD` del `.env` raíz. El script activa el perfil `jobs`; configura `OLLAMA_BASE_URL` para que backend y worker puedan alcanzar Ollama.
 
 Detener los servicios sin borrar los datos:
 
 ```powershell
-docker compose --profile dev --profile frontend down
+docker compose --profile dev --profile jobs --profile frontend down
 ```
 
 PostgreSQL y pgAdmin conservan sus datos en volúmenes separados. No ejecutar `docker compose down --volumes` si se desea preservar la base de datos.
@@ -301,6 +305,6 @@ npm run build
 
 - El bootstrap de `super_admin` se ejecuta en desarrollo desde las variables del `.env` raíz y no reemplaza cuentas existentes.
 - `README.md` y esta guía describen el arranque Docker local; todavía no hay un despliegue CI/CD a nube.
-- El worker tiene persistencia, leases, reintentos y despacho; falta registrar handlers de extracción/análisis de fases posteriores.
-- Los módulos de bóveda, licitaciones, análisis, chat y ofertas están como placeholders en frontend.
+- El worker de documentos usa extracción PDF/DOCX y embeddings; los handlers de análisis aún no existen.
+- Los módulos de licitaciones, análisis y ofertas siguen como placeholders; el chat ya cita documentos de la empresa cuando encuentra evidencia.
 - El rate limit de login elimina claves inactivas y tiene un límite de estado, pero sigue siendo local al proceso y no distribuido.

@@ -64,12 +64,12 @@ def test_product_schema_migrations_create_non_vector_domain_tables(tmp_path, mon
         "conversations",
         "messages",
         "message_citations",
+        "document_embeddings",
         "offers",
         "offer_versions",
         "offer_checklist_items",
         "offer_documents",
     }.issubset(tables)
-    assert "document_embeddings" not in tables
     with sqlite3.connect(db_path) as connection:
         job_columns = {
             row[1]
@@ -83,6 +83,17 @@ def test_product_schema_migrations_create_non_vector_domain_tables(tmp_path, mon
                 "SELECT code FROM permissions WHERE code LIKE 'tenders.%' "
                 "OR code LIKE 'documents.%' OR code LIKE 'analysis.%' "
                 "OR code LIKE 'chat.%' OR code LIKE 'offers.%'"
+            )
+        }
+        seeded_models = dict(
+            connection.execute(
+                "SELECT model_code, embedding_dimension FROM ai_models"
+            ).fetchall()
+        )
+        seeded_categories = {
+            row[0]
+            for row in connection.execute(
+                "SELECT code FROM document_categories WHERE is_active = 1"
             )
         }
 
@@ -99,6 +110,11 @@ def test_product_schema_migrations_create_non_vector_domain_tables(tmp_path, mon
         "offers.read",
         "offers.manage",
     } == product_permissions
+    assert seeded_models == {
+        "qwen3:1.7b": None,
+        "bge-m3": 1024,
+    }
+    assert "company-evidence" in seeded_categories
 
 
 def test_product_schema_rejects_cross_company_relations_and_invalid_values(

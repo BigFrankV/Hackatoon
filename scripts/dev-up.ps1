@@ -120,7 +120,7 @@ $serverConfig = $serverConfig.Replace('${POSTGRES_DB}', $databaseName).Replace('
 
 $frontendAnswer = Read-Host "Iniciar frontend en Docker? (s/N)"
 $startFrontendInDocker = $frontendAnswer -match "^(s|si|y|yes)$"
-$composeProfiles = @("--profile", "dev")
+$composeProfiles = @("--profile", "dev", "--profile", "jobs")
 if ($startFrontendInDocker) {
     $composeProfiles += @("--profile", "frontend")
 }
@@ -167,6 +167,7 @@ if ($startFrontendInDocker) {
     Write-Host "  Frontend not started in Docker. Run 'npm run dev' from frontend/ for hot reload."
 }
 Write-Host "  API docs: http://localhost:8000/docs"
+Write-Host "  Document worker: started for PDF/DOCX processing"
 Write-Host "  pgAdmin:  http://localhost:5050 (database server preconfigured)"
 Write-Host "  Database: localhost:5432"
 Write-Host ""

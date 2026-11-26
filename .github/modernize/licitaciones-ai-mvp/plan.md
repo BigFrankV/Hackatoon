@@ -1,7 +1,7 @@
 # Implementation Plan: Licitaciones AI MVP
 
 **Date**: 2026-11-26 | **Spec**: [spec.md](./spec.md)
-**Status**: Phase 2 foundational capabilities are implemented and validated. Live Mercado Público integration and vector persistence remain gated on Phase 1 external technical decisions.
+**Status**: Phase 2 foundations are implemented; the local Ollama document/chat slice is underway. Live Mercado Público integration remains gated on its official API contract and ticket.
 
 ## Summary
 
@@ -11,9 +11,9 @@ normalized schema, then add the shared Mercado Público catalogue and tenant-own
 tracking, provider policy, private document processing and retrieval,
 evidence-grounded analysis, contextual chat, and versioned offers.
 
-Start with Ollama (`qwen3:1.7b` for chat); defer hosted API integrations. Use
-private local storage during development. Select the dedicated Ollama embedding
-model/dimension before vector migrations. A valid Mercado Público ticket is
+Start with Ollama (`qwen3:1.7b` for chat and `bge-m3` at 1024 dimensions for
+embeddings); defer hosted API integrations. Use private local storage during
+development. A valid Mercado Público ticket is
 required only for live API integration and source retrieval; it does not block
 independent work such as RBAC, manual uploads, or local AI capabilities. The
 official integration is not assumed to provide tender-document downloads;
@@ -50,9 +50,9 @@ evidenced need.
 **Approval gate**: the user approved the specification, proposed data model,
 and physical-schema defaults, and ratified constitution v1.0.0. The relational
 role backfill is implemented; product migrations must follow the approved
-tenant, constraint, and deletion rules. Before vector migrations, choose the
-embedding model and dimension. Verify Ollama reachability before its runtime
-integration. A valid Mercado Público ticket and live contract checks block only
+tenant, constraint, and deletion rules. BGE-M3 at 1024 dimensions is selected
+and represented by the vector migration. Verify Ollama reachability before its
+runtime integration. A valid Mercado Público ticket and live contract checks block only
 the live source integration/retrieval work.
 
 ## Applied Guidelines
@@ -88,8 +88,8 @@ dependency, SQLAlchemy service, Alembic, and React feature-route patterns.
   terms, limits, and source document behavior when the ticket is available. If
   not, record that blocker; it gates only live Mercado Público integration and
   retrieval. Independently verify `qwen3:1.7b` and
-  backend-to-Ollama connectivity; choose a dedicated Ollama embedding model and
-  dimension before vector migrations. Hosted API providers are deferred. Use
+  backend-to-Ollama connectivity; use the selected `bge-m3` model at 1024
+  dimensions for embeddings. Hosted API providers are deferred. Use
   private local storage during development; record no tickets or secrets in
   repository files.
 
@@ -112,8 +112,8 @@ dependency, SQLAlchemy service, Alembic, and React feature-route patterns.
 - **Description**: Add Alembic migrations in dependency/domain slices for the
   approved target entities, including relational roles and permissions.
   Backfill current role values and preserve existing authorization behavior and
-  data. Enable pgvector only after the embedding model and vector dimension are
-  confirmed. Validate fresh-database migration and upgrade from the current
+  data. The selected pgvector embedding dimension is 1024. Validate
+  fresh-database migration and upgrade from the current
   schema.
 
 #### Step 5: [Cross-cutting] Enforce tenant access and audit boundaries
@@ -347,7 +347,7 @@ counts.
 
 - [x] T001 [Plan:1.1] Finalize field constraints, ownership, retention, and role backfill for the approved planning baseline in `../assessment/engines/facts/data-architecture.md`; preserve current permission behavior.
 - [ ] T002 [Plan:1.2] Validate official Mercado Público availability, list/detail responses, terms, limits, and document links when a ticket is available; until then record the live-integration blocker in `research/mercado-publico-api.md` without storing the ticket, and proceed with independent tasks.
-- [ ] T003 [Plan:1.2] Verify `qwen3:1.7b` and backend-to-Ollama connectivity, choose the Ollama embedding model/dimension, and record local private storage in `research.md`; hosted APIs remain deferred.
+- [x] T003 [Plan:1.2] Verify `qwen3:1.7b` and backend-to-Ollama connectivity, select `bge-m3` at 1024 dimensions, and record local private storage in `research.md`; hosted APIs remain deferred.
 - [x] T004 [Plan:1.3] Add PostgreSQL integration-test configuration and Playwright scripts/configuration in `backend/app/tests/conftest.py`, `frontend/package.json`, and `frontend/playwright.config.ts`.
 
 ### Phase 2: Foundational Capabilities

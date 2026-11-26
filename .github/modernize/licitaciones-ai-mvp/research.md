@@ -26,12 +26,12 @@
 ## AI Provider Strategy
 
 - **Decision**: Start with local Ollama. The user selected the downloaded
-  `qwen3:1.7b` model for chat and Ollama for embeddings. Hosted API integrations
-  are deferred to a later phase; keep server-side provider interfaces so they
-  can be added without changing business rules.
-- **Unresolved before AI runtime/vector work**: Verify the installed chat model
-  and backend-to-Ollama reachability, then select a dedicated embedding model
-  and dimension. A browser on the user's PC must not call Ollama directly.
+  `qwen3:1.7b` model for chat and `bge-m3` at 1024 dimensions for embeddings.
+  The backend connects to the local Ollama service; hosted API integrations are
+  deferred to a later phase. Keep server-side provider interfaces so they can
+  be added without changing business rules.
+- **Runtime boundary**: A browser on the user's PC must not call Ollama
+  directly. The backend and worker use the configured local Ollama endpoint.
 - **Embedding invariant**: Changing a chat model must not change stored vectors.
   Changing the embedding model requires an explicit migration/re-index plan;
   incompatible vector dimensions must not be mixed.

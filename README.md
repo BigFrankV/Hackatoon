@@ -16,7 +16,7 @@
   <img alt="Docker Compose" src="https://img.shields.io/badge/Dev-Docker%20Compose-2496ED?logo=docker&logoColor=white" />
 </p>
 
-> **Estado del proyecto:** la base de identidad, autenticación, roles, empresas, usuarios y auditoría está implementada. Bóveda, licitaciones, análisis, chat y ofertas siguen como módulos placeholder; todavía no hay despliegue CI/CD a producción.
+> **Estado del proyecto:** identidad, autenticación, RBAC, empresas y auditoría están implementados. El MVP local ya incluye carga privada de PDF/DOCX, extracción, embeddings con Ollama y chat con citas; la integración en vivo con Mercado Público, análisis Go/No-Go, seguimiento avanzado y ofertas siguen pendientes. No hay despliegue CI/CD a producción.
 
 ## ✨ Qué incluye
 
@@ -24,8 +24,10 @@
 - 🧭 Roles `super_admin`, `admin` y `user`, con autorización aplicada en la API.
 - 🏢 Separación multiempresa y administración de empresas y usuarios.
 - 🧾 Auditoría de acciones administrativas.
+- 📄 Repositorio privado de documentos PDF/DOCX con extracción y estado de procesamiento.
+- 🤖 Chat local con Ollama, recuperación por empresa y citas cuando hay documentos relevantes.
 - 🧪 Datos locales de ejemplo: dos empresas, cada una con un admin y un usuario normal.
-- 🐳 Arranque local de PostgreSQL, migraciones, backend y pgAdmin con un script.
+- 🐳 Arranque local de PostgreSQL, migraciones, backend, worker y pgAdmin con un script.
 - ⚛️ Frontend React/Vite opcional en Docker o ejecutado manualmente con recarga en caliente.
 
 ## 🧱 Arquitectura local
@@ -35,7 +37,10 @@ flowchart LR
     Browser["Navegador"]
     Front["React + Vite<br/>5173 · opcional"]
     API["FastAPI<br/>8000"]
+    Worker["Worker de documentos"]
     DB[("PostgreSQL 16<br/>pgvector")]
+    Ollama["Ollama local<br/>Qwen3 + BGE-M3"]
+    Storage["Archivos privados locales"]
     PGAdmin["pgAdmin<br/>5050"]
 
     subgraph Setup["Tareas de inicialización"]
@@ -47,11 +52,16 @@ flowchart LR
     Browser --> Front
     Front <--> API
     API <--> DB
+    API <--> Ollama
+    Worker <--> DB
+    Worker <--> Ollama
+    API --> Storage
+    Worker --> Storage
     PGAdmin --> DB
     DB --> Migrate --> Bootstrap --> Seed --> API
 ```
 
-La migración crea las tablas `companies`, `users`, `refresh_tokens` y `audit_logs`. El seeder local añade las empresas y usuarios demo después del bootstrap; no está mezclado con las migraciones de esquema.
+Las migraciones crean el esquema relacional, el catálogo Ollama y los vectores pgvector. El worker procesa los documentos subidos y la API solo devuelve contenido del tenant autenticado. El seeder local añade las empresas y usuarios demo después del bootstrap; no está mezclado con las migraciones de esquema.
 
 ## 🚀 Clonar e iniciar en Windows
 
@@ -59,6 +69,7 @@ La migración crea las tablas `companies`, `users`, `refresh_tokens` y `audit_lo
 
 - Git.
 - Docker Desktop iniciado, con Docker Compose v2.
+- Ollama local con `qwen3:1.7b` y `bge-m3` disponibles.
 - PowerShell.
 - Node.js 22+ y npm solo si ejecutarás el frontend manualmente.
 - Python 3.12 solo para correr las pruebas fuera de Docker.
@@ -103,6 +114,7 @@ El script pregunta `Iniciar frontend en Docker? (s/N)`:
 - Escribe `S` para iniciar también el frontend en Docker.
 
 El arranque espera que la API y pgAdmin estén saludables. El orden es: PostgreSQL → migraciones → superadmin → datos demo → API y pgAdmin.
+También inicia el worker para procesar la cola de documentos. En `.env` raíz, `OLLAMA_BASE_URL` por defecto apunta a `http://host.docker.internal:11434`.
 
 Si elegiste frontend manual, en otra ventana de PowerShell:
 

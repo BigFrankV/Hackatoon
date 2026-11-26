@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
@@ -43,8 +44,15 @@ class Settings(BaseSettings):
     database_echo: bool = False
 
     ollama_base_url: str = "http://localhost:11434"
+    ollama_chat_model: str = "qwen3:1.7b"
+    ollama_embedding_model: str = "bge-m3"
+    embedding_dimension: int = Field(default=1024, gt=0)
     procurement_api_ticket: SecretStr | None = None
     ai_provider_timeout_seconds: float = Field(default=30.0, gt=0, le=600)
+    private_storage_root: Path = Path("storage/private")
+    max_document_upload_bytes: int = Field(default=25 * 1024 * 1024, gt=0)
+    rag_min_similarity: float = Field(default=0.35, ge=0, le=1)
+    rag_top_k: int = Field(default=5, ge=1, le=20)
     procurement_source_timeout_seconds: float = Field(default=20.0, gt=0, le=600)
     storage_timeout_seconds: float = Field(default=30.0, gt=0, le=600)
     worker_poll_interval_seconds: float = Field(default=2.0, gt=0, le=300)

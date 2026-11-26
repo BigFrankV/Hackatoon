@@ -86,7 +86,9 @@ export async function apiRequest<T>(
   const { skipAuth = false, skipRefresh = false, headers, ...init } = options;
   const requestHeaders = new Headers(headers || {});
 
-  if (!requestHeaders.has("Content-Type") && init.body !== undefined) {
+  const isFormData =
+    typeof FormData !== "undefined" && init.body instanceof FormData;
+  if (!isFormData && !requestHeaders.has("Content-Type") && init.body !== undefined) {
     requestHeaders.set("Content-Type", "application/json");
   }
   if (!skipAuth && accessToken) {
@@ -103,7 +105,7 @@ export async function apiRequest<T>(
     const newToken = await refreshHandler();
     if (newToken) {
       const retryHeaders = new Headers(headers || {});
-      if (!retryHeaders.has("Content-Type") && init.body !== undefined) {
+      if (!isFormData && !retryHeaders.has("Content-Type") && init.body !== undefined) {
         retryHeaders.set("Content-Type", "application/json");
       }
       retryHeaders.set("Authorization", `Bearer ${newToken}`);

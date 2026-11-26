@@ -16,7 +16,9 @@ import { CompanySettingsPage } from "@/features/company/CompanySettingsPage";
 import { CompanyUserCreatePage } from "@/features/company/CompanyUserCreatePage";
 import { CompanyUserDetailPage } from "@/features/company/CompanyUserDetailPage";
 import { CompanyUsersPage } from "@/features/company/CompanyUsersPage";
+import { ChatPage } from "@/features/chat/ChatPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { VaultPage } from "@/features/documents/VaultPage";
 import { ModulePlaceholderPage } from "@/features/placeholders/ModulePlaceholderPage";
 import { CompaniesPage } from "@/features/platform/CompaniesPage";
 import { CompanyCreatePage } from "@/features/platform/CompanyCreatePage";
@@ -67,12 +69,7 @@ export function AppRouter() {
             <Route element={<RequirePermission permission="documents.read" />}>
               <Route
                 path="vault"
-                element={
-                  <Placeholder
-                    title="Repositorio"
-                    description="Gestión de documentos y evidencias de la empresa."
-                  />
-                }
+                element={<VaultPage />}
               />
             </Route>
             <Route element={<RequirePermission permission="tenders.read" />}>
@@ -120,12 +117,7 @@ export function AppRouter() {
             <Route element={<RequirePermission permission="chat.use" />}>
               <Route
                 path="chat"
-                element={
-                  <Placeholder
-                    title="Chat"
-                    description="Colaboración asistida por IA para las operaciones de licitación."
-                  />
-                }
+                element={<ChatPage />}
               />
             </Route>
             <Route element={<RequirePermission permission="offers.read" />}>

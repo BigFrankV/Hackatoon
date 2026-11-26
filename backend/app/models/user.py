@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
+    Index,
     Integer,
     String,
     Uuid,
@@ -42,6 +43,7 @@ class User(Base):
             name="fk_users_role_id_scope",
             ondelete="RESTRICT",
         ),
+        Index("uq_users_id_company_id", "id", "company_id", unique=True),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(

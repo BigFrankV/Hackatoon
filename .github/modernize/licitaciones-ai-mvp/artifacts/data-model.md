@@ -3,7 +3,7 @@
 This document records the schema currently implemented. The approved target
 model is documented in
 [`data-architecture.md`](../../assessment/engines/facts/data-architecture.md),
-including product tables created by Alembic revisions `0003` through `0006`.
+including product tables created by Alembic revisions `0003` through `0007`.
 
 ## Persistence
 
@@ -75,13 +75,14 @@ Actor and company references use `SET NULL` on deletion. The generic
 
 ## Not Yet Implemented
 
-The non-vector product tables are created by revisions `0003` through `0005`;
-revision `0006` adds product permissions and durable worker lease metadata and
-is applied to the local PostgreSQL database. The
-`document_processing_jobs` ORM mapping and lifecycle service are implemented,
-including lease recovery and idempotent retries. Tenant-scoped query/audit
-helpers and cross-company checks for tracked tenders, documents, jobs,
-analyses, conversations, and offers are implemented. The remaining product
-ORM mappings, feature services, and APIs belong to later phases.
-`document_embeddings` and pgvector indexes are intentionally absent until the
-embedding model and dimension are selected.
+The product tables are created by revisions `0003` through `0007`; revision
+`0006` adds product permissions and durable worker lease metadata. Revision
+`0007` adds `document_embeddings`, a PostgreSQL pgvector column with a 1024
+dimension and cosine HNSW index, and the local Ollama model catalog. The
+development embedding model is BGE-M3; chat uses `qwen3:1.7b`. The
+`document_processing_jobs` lifecycle includes lease recovery and idempotent
+retries. Current application code maps document, extraction, chunk, embedding,
+conversation, message, and citation records. Tenant-scoped document intake,
+processing, retrieval, and chat APIs are being wired to those records; the
+live Mercado Público adapter, analysis workflows, and offers remain future
+work.

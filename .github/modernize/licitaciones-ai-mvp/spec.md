@@ -16,7 +16,7 @@
   - Use the Mercado Público integration with manual document upload as a fallback.
   - Keep public procurement opportunities in a shared catalog and company-specific tracking, analysis, decisions, conversations, and offers in tenant-owned records.
   - Start with local Ollama, using the user's `qwen3:1.7b` model for chat; defer hosted API integrations while retaining a provider boundary.
-  - Use Ollama for embeddings, but choose the dedicated embedding model and vector dimension before the vector migration. Do not assume the chat model is an embedding model.
+  - Use Ollama for embeddings with the dedicated `bge-m3` model at 1024 dimensions. Do not assume the chat model is an embedding model.
   - Migrate the current role enum to relational role/permission tables as part of the planned database work, with explicit backfill and preservation of existing access rules.
   - Use private local document storage for development; select a cloud object-storage provider when deployment is defined.
 - **Out of scope for this feature**: Replacing the authentication/session behavior, training/fine-tuning foundation models, hosted AI provider integrations in the initial MVP, automatically submitting a tender or offer to Mercado Público, or allowing an AI model to make a binding participation decision without human approval.
@@ -197,12 +197,12 @@ As an authorized user, I want to assemble a checklist and select approved compan
 - PDF and DOCX are the first supported manual document formats, matching the existing product specification.
 - Company administrators control the approved model list and defaults. Individual users may choose an allowed chat model. Embedding model changes are company-controlled and require a planned reindex.
 - The initial MVP uses local Ollama; hosted API providers are deferred. The provider interface remains replaceable so a later phase can add hosted services.
-- Ollama is the initial embedding provider, but a dedicated embedding model and dimension must be selected and validated before the vector schema migration.
+- Ollama is the initial embedding provider; `bge-m3` at 1024 dimensions is selected for the vector schema.
 - The user's `qwen3:1.7b` is the initial chat-model choice as reported by the user; its local installation and backend reachability must be verified before runtime use.
 - Development documents use private local storage. A production object-storage provider is deferred until the cloud deployment target is selected.
 - Ollama is usable only when the backend can securely reach the Ollama service. A cloud backend does not automatically connect to Ollama installed on an end user's personal computer.
 - Preserve current login/session behavior and user/company identity. The user selected relational role/permission tables; the migration must explicitly backfill current role values and preserve existing authorization semantics.
-- The data architecture and its physical-schema defaults are approved before product migrations. Vector tables remain gated on a selected embedding model and dimension.
+- The data architecture and its physical-schema defaults are approved before product migrations. The vector migration uses the selected embedding model and dimension.
 - Deletions in the MVP are logical: retain audit records, versions, and historical analysis evidence, with no automatic hard purge. Define physical retention/purge before production.
 - No Mercado Público ticket is currently available for live verification; the user must obtain one before implementation of the live source integration.
 
@@ -242,4 +242,4 @@ As an authorized user, I want to assemble a checklist and select approved compan
 
 - Verify the official Mercado Público API contract and document availability before live integration/retrieval; this does not block unrelated work.
 - Physical schema defaults, deletion rules, and role backfill are approved; migration tests must verify them before product migrations are applied.
-- Select a dedicated Ollama embedding model/dimension before vector migrations, and verify backend-to-Ollama reachability before AI runtime integration.
+- `bge-m3` at 1024 dimensions is selected and the vector migration is implemented. Verify the complete local ingestion and chat flow against the running Ollama service.
